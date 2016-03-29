@@ -1,12 +1,11 @@
 package cz.cuni.mff.ConfigMapper;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by teyras on 29.3.16.
  */
-public class ConfigNode {
+public final class ConfigNode {
     public enum Type {
         LIST,
         SECTION,
@@ -14,15 +13,50 @@ public class ConfigNode {
         ROOT_NODE
     }
 
+    private Type type;
+
+    private String name;
+
+    private String simpleValue;
+
+    private List<String> listValue;
+
+    private List<ConfigNode> sections;
+
+    public ConfigNode(Type type, String name) {
+        this.type = type;
+        this.name = name;
+    }
+
     public Type getType() {
-        return Type.SIMPLE_VALUE;
+        return type;
     }
 
     public String getName() {
-        return "";
+        return name;
+    }
+
+    public String getSimpleValue() {
+        return simpleValue;
+    }
+
+    public void setSimpleValue(String simpleValue) {
+        this.simpleValue = simpleValue;
     }
 
     public List<String> getListValue() {
-        return new ArrayList<>();
+        return listValue;
+    }
+
+    public void setListValue(List<String> listValue) {
+        this.listValue = listValue;
+    }
+
+    public List<ConfigNode> getSections() {
+        return sections;
+    }
+
+    public void setSections(List<ConfigNode> sections) {
+        this.sections = sections;
     }
 }
