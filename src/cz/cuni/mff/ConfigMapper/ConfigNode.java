@@ -21,7 +21,7 @@ public final class ConfigNode {
 
     private List<String> listValue;
 
-    private List<ConfigNode> sections;
+    private List<ConfigNode> childNodes;
 
     public ConfigNode(Type type, String name) {
         this.type = type;
@@ -52,11 +52,11 @@ public final class ConfigNode {
         this.listValue = listValue;
     }
 
-    public List<ConfigNode> getSections() {
-        return sections;
+    public List<ConfigNode> getChildNodes() {
+        return childNodes;
     }
 
-    public void setSections(List<ConfigNode> sections) {
-        this.sections = sections;
+    public void setChildNodes(List<ConfigNode> sections) {
+        this.childNodes = sections;
     }
 }
