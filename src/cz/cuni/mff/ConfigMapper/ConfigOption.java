@@ -4,13 +4,13 @@ package cz.cuni.mff.ConfigMapper;
  * Created by teyras on 28.3.16.
  */
 public @interface ConfigOption {
-    String description();
+    String description() default "";
 
-    String section();
+    String section() default "";
 
-    String name();
+    String name() default "";
 
-    int max();
+    int max() default Integer.MAX_VALUE;
 
-    int min();
+    int min() default Integer.MIN_VALUE;
 }
