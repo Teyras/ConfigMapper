@@ -27,21 +27,11 @@ public class IniAdapterTest {
 
         // The configuration must be a root node that contains two sections
         assertNotNull(config);
-        
-        // Doesn't make sense anymore
-        //assertEquals(ConfigNode.Type.ROOT_NODE, config.getType());
-        
         assertEquals(2, config.getSections().size());
 
-        
         Section[] sections = new Section[2];
         config.getSections().toArray(sections);
-        
-        /* No need for this anymore
-        assertEquals(ConfigNode.Type.SECTION, sections[0].getType());
-        assertEquals(ConfigNode.Type.SECTION, sections[1].getType());
-        */
-        
+
         // Check the options in the first section
         assertEquals("sectionA", sections[0].getName());
         assertEquals(2, sections[0].getValues().size());

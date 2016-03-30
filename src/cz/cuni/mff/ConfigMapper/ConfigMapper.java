@@ -1,6 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
 import cz.cuni.mff.ConfigMapper.Nodes.ConfigNode;
+import cz.cuni.mff.ConfigMapper.Nodes.Root;
 
 /**
  * Maps {@link ConfigNode} structures to objects
@@ -25,7 +26,7 @@ public class ConfigMapper<MappedObject> {
      * @param mode The mapping mode
      * @return A new instance of MappedObject with options from config
      */
-    public<MappedObject> MappedObject load(ConfigNode config, LoadingMode mode) {
+    public<MappedObject> MappedObject load(Root config, LoadingMode mode) {
         try {
             return (MappedObject) cls.newInstance();
         } catch (java.lang.InstantiationException e) {
@@ -43,7 +44,7 @@ public class ConfigMapper<MappedObject> {
      * @param object The source instance
      * @param config The config structure into which the mapped options are stored
      */
-    public void save(MappedObject object, ConfigNode config) {
+    public void save(MappedObject object, Root config) {
 
     }
 }
