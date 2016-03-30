@@ -1,6 +1,6 @@
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
-import cz.cuni.mff.ConfigMapper.ConfigOption;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
+import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 
 import org.junit.Test;

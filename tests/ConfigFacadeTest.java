@@ -1,4 +1,7 @@
 import cz.cuni.mff.ConfigMapper.*;
+import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
+import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
+
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
