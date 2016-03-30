@@ -1,7 +1,7 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
 public class SimpleValue extends Value {
-	
+
 	private String value;
 
 	public String getValue() {

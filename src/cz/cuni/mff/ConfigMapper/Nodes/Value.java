@@ -8,11 +8,11 @@ public abstract class Value extends ConfigNode {
 		Unsigned,
 		Float,
 		String,
-		Enum 
+		Enum
 	}
-	
+
 	private Type type;
-	
+
 	public Value(String name, Type type) {
 		super(name);
 		this.type = type;
