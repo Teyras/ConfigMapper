@@ -1,7 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
 /**
- * Created by teyras on 29.3.16.
+ * Marks a field that should contain all undeclared options
  */
 public @interface UndeclaredOptions {
 }
