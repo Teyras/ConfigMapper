@@ -1,4 +1,4 @@
-package cz.cuni.mff.ConfigMapper;
+package cz.cuni.mff.ConfigMapper.Annotations;
 
 /**
  * Marks a field that maps to a section in a configuration file
