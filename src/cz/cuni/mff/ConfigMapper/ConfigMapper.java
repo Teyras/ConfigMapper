@@ -1,5 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigNode;
+
 /**
  * Maps {@link ConfigNode} structures to objects
  */

@@ -3,6 +3,8 @@ package cz.cuni.mff.ConfigMapper;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import cz.cuni.mff.ConfigMapper.Nodes.Root;
+
 /**
  * A configuration adapter for INI files
  */
@@ -13,7 +15,7 @@ public class IniAdapter implements ConfigAdapter {
      * @return The configuration structure
      */
     @Override
-    public ConfigNode read(InputStream input) {
+    public Root read(InputStream input) {
         return null;
     }
 
@@ -23,7 +25,7 @@ public class IniAdapter implements ConfigAdapter {
      * @param output The output stream
      */
     @Override
-    public void write(ConfigNode config, OutputStream output) {
+    public void write(Root config, OutputStream output) {
 
     }
 }
