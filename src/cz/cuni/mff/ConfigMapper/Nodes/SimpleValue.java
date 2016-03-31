@@ -8,12 +8,11 @@ public class SimpleValue extends Value {
 		return value;
 	}
 
-	public SimpleValue(String name, Type type) {
-		super(name, type);
+	public SimpleValue(String name) {
+		super(name);
 	}
 
 	public void setValue(String value) {
-		// TODO Auto-generated method stub
 		this.value = value;
 	}
 
