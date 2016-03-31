@@ -16,19 +16,19 @@ public class ConfigFacade<MappedObject> {
 		this.mapper = new ConfigMapper<MappedObject>(cls);
 	}
 
-	public <MappedObject> MappedObject load(InputStream input, LoadingMode mode) throws MappingException {
+	public <MappedObject> MappedObject load(InputStream input, LoadingMode mode) throws MappingException, ConfigurationException {
 		return mapper.load(adapter.read(input), mode);
 	}
 
-	public <MappedObject> MappedObject load(InputStream input) throws MappingException {
+	public <MappedObject> MappedObject load(InputStream input) throws MappingException, ConfigurationException {
 		return load(input, LoadingMode.STRICT);
 	}
 
-	public <MappedObject> MappedObject load(File file, LoadingMode mode) throws FileNotFoundException, MappingException {
+	public <MappedObject> MappedObject load(File file, LoadingMode mode) throws FileNotFoundException, MappingException, ConfigurationException {
 		return load(new FileInputStream(file), mode);
 	}
 
-	public <MappedObject> MappedObject load(File file) throws FileNotFoundException, MappingException {
+	public <MappedObject> MappedObject load(File file) throws FileNotFoundException, MappingException, ConfigurationException {
 		return load(new FileInputStream(file), LoadingMode.STRICT);
 	}
 
