@@ -32,12 +32,16 @@ public class ConfigMapper<MappedObject> {
 		try {
 			return (MappedObject) cls.newInstance();
 		} catch (InstantiationException e) {
-
+			throw new MappingException(String.format(
+				"Could not instantiate mapped class %s - does it have a default constructor?",
+				cls.getName()
+			));
 		} catch (IllegalAccessException e) {
-
+			throw new MappingException(String.format(
+				"Could not access the default constructor of mapped class %s",
+				cls.getName()
+			));
 		}
-
-		return null;
 	}
 
 	/**
