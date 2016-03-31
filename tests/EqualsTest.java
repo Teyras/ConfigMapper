@@ -23,6 +23,8 @@ public class EqualsTest {
 		assertEquals(simpleOne1, simpleOne2);
 		assertNotEquals(simpleOne1, simpleOneFake);
 		assertNotEquals(simpleOne1, simpleTwo);
+		assertNotEquals(simpleOne1, new Object());
+		assertNotEquals(simpleOne1, null);
 	}
 	
 	ListValue listOnes1 = new ListValue("Ones", Arrays.asList("One", "1", "Uno"));
@@ -30,11 +32,11 @@ public class EqualsTest {
 	ListValue listTwos1= new ListValue("Twos", Arrays.asList("Two", "2", "Due"));
 	@Test
 	public void testListValueEquals() {
-		ListValue listOnesFake= new ListValue("Twos", Arrays.asList("One", "1", "Uno"));
-		
+		ListValue listOnesFake= new ListValue("Twos", Arrays.asList("One", "1", "Uno"));		
 		ListValue listOnesEmpty1 = new ListValue("Empty", Collections.emptyList());
 		ListValue listOnesEmpty2 = new ListValue("Empty", Collections.emptyList());
 		ListValue listOnesEmptyFake = new ListValue("Ones", Collections.emptyList());
+		ListValue listOnesNull = new ListValue("Ones", null);
 		
 		assertEquals(listOnes1, listOnes2);
 		assertEquals(listOnesEmpty1, listOnesEmpty2);
@@ -45,10 +47,14 @@ public class EqualsTest {
 		assertNotEquals(listOnes1, listOnesEmpty1);
 		// full X empty + same name
 		assertNotEquals(listOnes1, listOnesEmptyFake);
+		assertNotEquals(listOnes1, listOnesNull);
 		// wrong name + empty list
 		assertNotEquals(listOnesEmpty1, listOnesEmptyFake);
 		// completely different
 		assertNotEquals(listOnes1, listTwos1);
+		// different object type
+		assertNotEquals(listOnesEmpty1, new Object());
+		assertNotEquals(listOnesEmpty1, null);
 	}
 	
 	@Test
@@ -60,6 +66,7 @@ public class EqualsTest {
 		Section struct1 = new Section("structOnes", Arrays.asList(flatListOnes1, flatListTwos));
 		Section struct2 = new Section("structOnes", Arrays.asList(flatListOnes1, flatListTwos));
 		Section structDif = new Section("structOnes", Arrays.asList(flatListOnes1, flatListOnesFake,flatListTwos));
+		Section flatNull = new Section("flatOnes", null);
 		
 		assertEquals(flatListOnes1, flatListOnes2);
 		assertEquals(struct1, struct2);
@@ -68,10 +75,14 @@ public class EqualsTest {
 		assertNotEquals(flatListOnes1, flatListTwos);
 		// same name different children
 		assertNotEquals(flatListOnes1, flatListOnesFake);
+		assertNotEquals(flatListOnes1, flatNull);
 		// same children different name
 		assertNotEquals(flatListOnesFake, flatListTwos);
 		// different structured 
 		assertNotEquals(struct1, structDif);
+		// different object type
+		assertNotEquals(struct1, new Object());
+		assertNotEquals(struct1, null);
 	}
 
 }
