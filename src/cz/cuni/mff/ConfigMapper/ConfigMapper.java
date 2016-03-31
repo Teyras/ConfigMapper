@@ -25,12 +25,13 @@ public class ConfigMapper<MappedObject> {
 	 *
 	 * @param config The configuration tree to be mapped
 	 * @param mode   The mapping mode
+	 * @throws MappingException When the loaded configuration cannot be mapped onto na object of given class
 	 * @return A new instance of MappedObject with options from config
 	 */
-	public <MappedObject> MappedObject load(Root config, LoadingMode mode) {
+	public <MappedObject> MappedObject load(Root config, LoadingMode mode) throws MappingException {
 		try {
 			return (MappedObject) cls.newInstance();
-		} catch (java.lang.InstantiationException e) {
+		} catch (InstantiationException e) {
 
 		} catch (IllegalAccessException e) {
 

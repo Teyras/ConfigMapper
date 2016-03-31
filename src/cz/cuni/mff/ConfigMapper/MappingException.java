@@ -1,0 +1,7 @@
+package cz.cuni.mff.ConfigMapper;
+
+/**
+ * Thrown when there is something wrong with mapping a configuration onto an object
+ */
+public class MappingException extends Exception {
+}
