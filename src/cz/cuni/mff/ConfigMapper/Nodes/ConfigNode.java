@@ -4,7 +4,7 @@ package cz.cuni.mff.ConfigMapper.Nodes;
  * Created by teyras on 29.3.16.
  */
 public abstract class ConfigNode {
-	private String name;
+	protected String name;
 
 	private String description;
 
@@ -32,5 +32,4 @@ public abstract class ConfigNode {
 	
 	@Override
 	public abstract boolean equals(Object other);
-
 }
