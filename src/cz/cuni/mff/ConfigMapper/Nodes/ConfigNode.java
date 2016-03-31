@@ -29,5 +29,8 @@ public abstract class ConfigNode {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	
+	@Override
+	public abstract boolean equals(Object other);
 
 }
