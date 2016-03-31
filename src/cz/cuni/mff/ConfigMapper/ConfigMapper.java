@@ -45,13 +45,12 @@ public class ConfigMapper<MappedObject> {
 	}
 
 	/**
-	 * Store mapped options from a MappedObject instance to an existing config structure.
-	 * Any config nodes not affected by the values in the mapped object remain the same.
+	 * Store mapped options from a MappedObject instance to a new configuration structure.
 	 *
 	 * @param object The source instance
-	 * @param config The config structure into which the mapped options are stored
+	 * @return The new configuration structure
 	 */
-	public void save(MappedObject object, Root config) {
-
+	public Root save(MappedObject object) {
+		return null;
 	}
 }
