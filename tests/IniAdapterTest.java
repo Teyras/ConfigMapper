@@ -1,4 +1,4 @@
-import cz.cuni.mff.ConfigMapper.IniAdapter;
+import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import cz.cuni.mff.ConfigMapper.Nodes.SimpleValue;

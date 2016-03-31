@@ -1,4 +1,4 @@
-package cz.cuni.mff.ConfigMapper;
+package cz.cuni.mff.ConfigMapper.Adapters;
 
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 

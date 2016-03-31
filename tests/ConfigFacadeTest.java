@@ -1,7 +1,7 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
 import cz.cuni.mff.ConfigMapper.ConfigFacade;
-import cz.cuni.mff.ConfigMapper.IniAdapter;
+import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import org.junit.Test;
 

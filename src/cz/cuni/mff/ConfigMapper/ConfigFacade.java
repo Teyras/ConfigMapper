@@ -1,5 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
+import cz.cuni.mff.ConfigMapper.Adapters.ConfigAdapter;
+
 import java.io.*;
 
 /**
