@@ -4,25 +4,37 @@ import java.util.List;
 
 public class Section extends ConfigNode {
 
-	private List<Value> values;
+	private List<ConfigNode> children;
 
 	public Section(String name) {
 		super(name);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
-	 * @return the values
+	 * @return the children
 	 */
-	public List<Value> getValues() {
-		return values;
+	public List<ConfigNode> getChildren() {
+		return children;
 	}
 
 	/**
-	 * @param values the values to set
+	 * @param children the children to set
 	 */
-	public void setValues(List<Value> values) {
-		this.values = values;
+	public void setChildren(List<ConfigNode> children) {
+		this.children = children;
 	}
 
+	/**
+	 * Does the section only contain values?
+	 * @return true if the section only contains values (i.e. there are no subsections), false otherwise
+	 */
+	public boolean isFlat() {
+		for (ConfigNode node : children) {
+			if (!(node instanceof Value)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }

@@ -1,10 +1,7 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
-import cz.cuni.mff.ConfigMapper.Nodes.Section;
-import cz.cuni.mff.ConfigMapper.Nodes.SimpleValue;
-import cz.cuni.mff.ConfigMapper.Nodes.Value;
+import cz.cuni.mff.ConfigMapper.Nodes.*;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -30,19 +27,19 @@ public class ConfigMapperTest {
 	public void loadBasic() throws Exception {
 		// Set up testing config structure
 		Section section1 = new Section("section1");
-		SimpleValue optionString = new SimpleValue("optionString", Value.Type.String);
+		SimpleValue optionString = new SimpleValue("optionString");
 		optionString.setValue("value");
-		SimpleValue optionInt = new SimpleValue("optionInt", Value.Type.Signed);
+		SimpleValue optionInt = new SimpleValue("optionInt");
 		optionInt.setValue("10");
-		section1.setValues(Arrays.asList(optionString, optionInt));
+		section1.setChildren(Arrays.asList(optionString, optionInt));
 
 		Section section2 = new Section("section2");
-		SimpleValue optionBool = new SimpleValue("optionBool", Value.Type.Boolean);
+		SimpleValue optionBool = new SimpleValue("optionBool");
 		optionBool.setValue("on");
-		section2.setValues(Arrays.asList(optionBool));
+		section2.setChildren(Arrays.asList(optionBool));
 
 		Root config = new Root("config.ini");
-		config.setSetions(Arrays.asList(section1, section2));
+		config.setChildren(Arrays.asList(section1, section2));
 
 		// Instantiate the mapper
 		ConfigMapper<BasicMappedClass> mapper = new ConfigMapper<>(BasicMappedClass.class);

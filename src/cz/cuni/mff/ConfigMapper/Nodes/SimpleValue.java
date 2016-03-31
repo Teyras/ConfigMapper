@@ -4,12 +4,12 @@ public class SimpleValue extends Value {
 
 	private String value;
 
-	public String getValue() {
-		return value;
-	}
-
 	public SimpleValue(String name) {
 		super(name);
+	}
+
+	public String getValue() {
+		return value;
 	}
 
 	public void setValue(String value) {
