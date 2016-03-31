@@ -26,20 +26,19 @@ public class ConfigMapperTest {
 	@Test
 	public void loadBasic() throws Exception {
 		// Set up testing config structure
-		Section section1 = new Section("section1");
-		SimpleValue optionString = new SimpleValue("optionString");
-		optionString.setValue("value");
-		SimpleValue optionInt = new SimpleValue("optionInt");
-		optionInt.setValue("10");
-		section1.setChildren(Arrays.asList(optionString, optionInt));
+		Section section1 = new Section("section1", Arrays.asList(
+			new SimpleValue("optionString", "value"),
+			new SimpleValue("optionInt", "10")
+		));
 
-		Section section2 = new Section("section2");
-		SimpleValue optionBool = new SimpleValue("optionBool");
-		optionBool.setValue("on");
-		section2.setChildren(Arrays.asList(optionBool));
+		Section section2 = new Section("section2", Arrays.asList(
+			new SimpleValue("optionBool", "on")
+		));
 
-		Root config = new Root("config.ini");
-		config.setChildren(Arrays.asList(section1, section2));
+		Root config = new Root("config.ini", Arrays.asList(
+			section1,
+			section2
+		));
 
 		// Instantiate the mapper
 		ConfigMapper<BasicMappedClass> mapper = new ConfigMapper<>(BasicMappedClass.class);

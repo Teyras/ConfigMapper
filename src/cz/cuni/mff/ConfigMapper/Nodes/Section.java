@@ -6,8 +6,9 @@ public class Section extends ConfigNode {
 
 	private List<ConfigNode> children;
 
-	public Section(String name) {
+	public Section(String name, List<ConfigNode> children) {
 		super(name);
+		this.children = children;
 	}
 
 	/**
@@ -15,13 +16,6 @@ public class Section extends ConfigNode {
 	 */
 	public List<ConfigNode> getChildren() {
 		return children;
-	}
-
-	/**
-	 * @param children the children to set
-	 */
-	public void setChildren(List<ConfigNode> children) {
-		this.children = children;
 	}
 
 	/**
