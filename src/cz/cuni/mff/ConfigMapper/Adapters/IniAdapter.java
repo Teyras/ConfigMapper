@@ -1,5 +1,6 @@
 package cz.cuni.mff.ConfigMapper.Adapters;
 
+import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 
 import java.io.InputStream;
@@ -13,10 +14,11 @@ public class IniAdapter implements ConfigAdapter {
 	 * Parse config from an INI file
 	 *
 	 * @param input The input stream
+	 * @throws ConfigurationException When the input file is invalid
 	 * @return The configuration structure
 	 */
 	@Override
-	public Root read(InputStream input) {
+	public Root read(InputStream input) throws ConfigurationException {
 		return null;
 	}
 
