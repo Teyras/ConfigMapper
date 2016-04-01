@@ -32,9 +32,13 @@ generate configuration GUI automatically.
 ## Working with numeric types
 
 The INI specification requires the implementation to support unsigned 64-bit 
-integers. This is problematic, as Java doesn't have unsigned types. Therefore, 
-we cannot use `long` (a 64-bit type) for all numbers. It is up to the 
-programmers decision whether to use an `int`, `long` or `BigInteger` as the 
+integers. This is problematic, as Java doesn't have unsigned types. The library 
+supports marking fields with the `NumericValue` annotation that (also) has the 
+`unsigned` option. Unsigned values that do not fit in the `long` type are not 
+permitted - it is very improbable that a programmer would need to have such a 
+large number in a configuration file.
+
+It is up to the programmers decision whether to use `int` or `long` as the 
 option value type. If the number in the configuration file cannot fit in the 
 specified type, an exception is thrown when the file is loaded.
 
