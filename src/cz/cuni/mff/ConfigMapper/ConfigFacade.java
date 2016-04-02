@@ -32,19 +32,19 @@ public class ConfigFacade<MappedObject> {
 		return load(new FileInputStream(file), LoadingMode.STRICT);
 	}
 
-	public void save(MappedObject object, OutputStream output) {
-
+	public void save(MappedObject object, OutputStream output) throws ConfigurationException {
+		adapter.write(mapper.save(object), output);
 	}
 
-	public void save(MappedObject object, File file) throws FileNotFoundException {
+	public void save(MappedObject object, File file) throws FileNotFoundException, ConfigurationException {
 		save(object, new FileOutputStream(file));
 	}
 
-	public void saveDefaults(OutputStream output) {
+	public void saveDefaults(OutputStream output) throws  ConfigurationException {
 
 	}
 
-	public void saveDefaults(File file) throws FileNotFoundException {
+	public void saveDefaults(File file) throws FileNotFoundException, ConfigurationException {
 		saveDefaults(new FileOutputStream(file));
 	}
 }

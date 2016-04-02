@@ -24,6 +24,7 @@ public interface ConfigAdapter {
 	 *
 	 * @param config The configuration structure
 	 * @param output The output stream
+	 * @throws ConfigurationException When the configuration cannot be written in this adapters format
 	 */
-	void write(Root config, OutputStream output);
+	void write(Root config, OutputStream output) throws ConfigurationException;
 }
