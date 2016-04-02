@@ -1,5 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
+import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
+
 /**
  * Represents the way of mapping configuration to objects
  */

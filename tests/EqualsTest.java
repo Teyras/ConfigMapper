@@ -7,18 +7,18 @@ import java.util.Collections;
 
 import org.junit.Test;
 
-import cz.cuni.mff.ConfigMapper.Nodes.ListValue;
+import cz.cuni.mff.ConfigMapper.Nodes.ListOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
-import cz.cuni.mff.ConfigMapper.Nodes.SimpleValue;
+import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 
 public class EqualsTest {
 
 	@Test
 	public void testSimpleValueEquals() {
-		SimpleValue simpleOne1 = new SimpleValue("One", "1");
-		SimpleValue simpleOne2 = new SimpleValue("One", "1");
-		SimpleValue simpleOneFake = new SimpleValue("Two", "1");
-		SimpleValue simpleTwo = new SimpleValue("Two", "2");
+		ScalarOption simpleOne1 = new ScalarOption("One", "1");
+		ScalarOption simpleOne2 = new ScalarOption("One", "1");
+		ScalarOption simpleOneFake = new ScalarOption("Two", "1");
+		ScalarOption simpleTwo = new ScalarOption("Two", "2");
 		
 		assertEquals(simpleOne1, simpleOne2);
 		assertNotEquals(simpleOne1, simpleOneFake);
@@ -27,16 +27,16 @@ public class EqualsTest {
 		assertNotEquals(simpleOne1, null);
 	}
 	
-	ListValue listOnes1 = new ListValue("Ones", Arrays.asList("One", "1", "Uno"));
-	ListValue listOnes2 = new ListValue("Ones", Arrays.asList("One", "1", "Uno"));
-	ListValue listTwos1= new ListValue("Twos", Arrays.asList("Two", "2", "Due"));
+	ListOption listOnes1 = new ListOption("Ones", Arrays.asList("One", "1", "Uno"));
+	ListOption listOnes2 = new ListOption("Ones", Arrays.asList("One", "1", "Uno"));
+	ListOption listTwos1= new ListOption("Twos", Arrays.asList("Two", "2", "Due"));
 	@Test
 	public void testListValueEquals() {
-		ListValue listOnesFake= new ListValue("Twos", Arrays.asList("One", "1", "Uno"));		
-		ListValue listOnesEmpty1 = new ListValue("Empty", Collections.emptyList());
-		ListValue listOnesEmpty2 = new ListValue("Empty", Collections.emptyList());
-		ListValue listOnesEmptyFake = new ListValue("Ones", Collections.emptyList());
-		ListValue listOnesNull = new ListValue("Ones", null);
+		ListOption listOnesFake= new ListOption("Twos", Arrays.asList("One", "1", "Uno"));
+		ListOption listOnesEmpty1 = new ListOption("Empty", Collections.emptyList());
+		ListOption listOnesEmpty2 = new ListOption("Empty", Collections.emptyList());
+		ListOption listOnesEmptyFake = new ListOption("Ones", Collections.emptyList());
+		ListOption listOnesNull = new ListOption("Ones", null);
 		
 		assertEquals(listOnes1, listOnes2);
 		assertEquals(listOnesEmpty1, listOnesEmpty2);
