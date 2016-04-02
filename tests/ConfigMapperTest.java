@@ -27,12 +27,12 @@ public class ConfigMapperTest {
 	public void loadBasic() throws Exception {
 		// Set up testing config structure
 		Section section1 = new Section("section1", Arrays.asList(
-			new SimpleValue("optionString", "value"),
-			new SimpleValue("optionInt", "10")
+			new ScalarOption("optionString", "value"),
+			new ScalarOption("optionInt", "10")
 		));
 
 		Section section2 = new Section("section2", Arrays.asList(
-			new SimpleValue("optionBool", "on")
+			new ScalarOption("optionBool", "on")
 		));
 
 		Root config = new Root("config.ini", Arrays.asList(

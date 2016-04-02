@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Represents a list of values in the configuration file
  */
-public class ListValue extends Value {
+public class ListOption extends Option {
 
 	/**
 	 * The list of values
@@ -16,7 +16,7 @@ public class ListValue extends Value {
 	 * @param name the name of the option
 	 * @param value the value of the option
 	 */
-	public ListValue(String name, List<String> value) {
+	public ListOption(String name, List<String> value) {
 		super(name);
 		this.value = value;
 	}
@@ -45,7 +45,7 @@ public class ListValue extends Value {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
-		ListValue other = (ListValue) obj;
+		ListOption other = (ListOption) obj;
 		
 		if (name == null) {
 			if (other.name != null) {

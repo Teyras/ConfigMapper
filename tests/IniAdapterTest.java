@@ -3,7 +3,6 @@ import cz.cuni.mff.ConfigMapper.Nodes.*;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -26,11 +25,11 @@ public class IniAdapterTest {
 
 		Root expectedConfig = new Root("", Arrays.asList(
 			new Section("sectionA", Arrays.asList(
-				new SimpleValue("option1", "foo"),
-				new SimpleValue("option2", "bar")
+				new ScalarOption("option1", "foo"),
+				new ScalarOption("option2", "bar")
 			)),
 			new Section("sectionB", Arrays.asList(
-				new ListValue("option3", Arrays.asList("baz", "baz", "baz"))
+				new ListOption("option3", Arrays.asList("baz", "baz", "baz"))
 			))
 		));
 

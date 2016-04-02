@@ -4,7 +4,7 @@ package cz.cuni.mff.ConfigMapper.Nodes;
  * Represents a scalar option value in the configuration file.
  * The value is kept in string form.
  */
-public class SimpleValue extends Value {
+public class ScalarOption extends Option {
 
 	/**
 	 * The value of the option
@@ -15,7 +15,7 @@ public class SimpleValue extends Value {
 	 * @param name the name of the option
 	 * @param value the value of the option
 	 */
-	public SimpleValue(String name, String value) {
+	public ScalarOption(String name, String value) {
 		super(name);
 		this.value = value;
 	}
@@ -45,7 +45,7 @@ public class SimpleValue extends Value {
 			return false;
 		}
 		
-		SimpleValue other = (SimpleValue) obj;
+		ScalarOption other = (ScalarOption) obj;
 		if (name == null) {
 			if (other.name != null) {
 				return false;

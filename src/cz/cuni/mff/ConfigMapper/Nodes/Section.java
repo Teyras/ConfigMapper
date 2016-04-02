@@ -35,7 +35,7 @@ public class Section extends ConfigNode {
 	 */
 	public boolean isFlat() {
 		for (ConfigNode node : children) {
-			if (!(node instanceof Value)) {
+			if (!(node instanceof Option)) {
 				return false;
 			}
 		}
