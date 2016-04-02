@@ -7,7 +7,7 @@ package cz.cuni.mff.ConfigMapper.Annotations;
  */
 public @interface ConstantAlias {
 	/**
-	 * The name of the constant we want to alias
+	 * The name of the constant we want to alias (unqualified - "CONST", not "Enumerable.CONST")
 	 */
 	String constant();
 
