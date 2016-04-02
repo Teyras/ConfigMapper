@@ -18,10 +18,17 @@ facade.save(mappedConfig, output);
 ```
 
 In the example above, the `ConfigFacade` is typed (TODO: typed neni spravny slovo!!) 
-with the `BasicMappedClass`, thus defining the documentation format. Further, an instance
+with the `BasicMappedClass`, thus defining the documentation format. If the loading mode
+is set to `RELAXED`, the mapped class has to have a property (TODO: map type?) annotated `@UndeclaredOptions`,
+where the options which do not match any of the classes properties, but appear in the 
+configuration file, are stored.
+
+An instance
 of the interface `ConfigAdapter` (the class `IniAdapter()` in particular) is provided, 
 which specifies the format of the configuration file. This is the only implementation of the 
-`ConfigAdapter` interface provided by this library (so far). To store the configuration in 
+`ConfigAdapter` interface provided by this library (so far). 
+
+To store the configuration in 
 a file, the method `save` on the `facade` object is called. There also is a method 
 for saving the default values, which does not consult any class instance, only the declaration.
 
