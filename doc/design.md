@@ -1,3 +1,7 @@
+---
+geometry: margin=1in
+...
+
 # Specifying the configuration format
 
 The configuration format is defined using standard Java classes. The fields that 
