@@ -2,6 +2,23 @@
 geometry: margin=1in
 ...
 
+# Use case analysis
+
+There are two main approaches to working with configuration files - either the 
+user edits the file directly, or the program features an interface that allows 
+setting preferences in a more comfortable way.
+
+The first approach only requires the library to read the configuration file. 
+Writing functionality is however required by the second approach. It is 
+important that the saved file is similar to the original. However, it is not 
+necessary to keep its structure exactly the same (e.g. preserve variable 
+substitutions) - when the configuration file is being handled by the program 
+itself, it is seldom read by a human.
+
+It is also a good practice to encapsulate configuration in an object that can be 
+passed to classes that use it, instead of accessing configuration options 
+directly from random places in the code.
+
 # Specifying the configuration format
 
 The configuration format is defined using standard Java classes. The fields that 
