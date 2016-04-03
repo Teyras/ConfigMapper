@@ -63,6 +63,14 @@ It is up to the programmers decision whether to use `int` or `long` as the
 option value type. If the number in the configuration file cannot fit in the 
 specified type, an exception is thrown when the file is loaded.
 
+## Working with enumeration types
+
+We decided to map enumerations to the Java `enum` type. This helps enforce type 
+safety, as opposed to working with strings. On the other hand, there has to be a 
+way to alias `enum` constants so that their names don't have to match the 
+options in the configuration files. The `ConstantAlias` annotation facilitates 
+that.
+
 # The `ConfigMapper` class
 
 The `load` and `save` methods work with a tree structure based on the 
