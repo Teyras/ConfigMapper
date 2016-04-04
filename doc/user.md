@@ -17,11 +17,12 @@ BasicMappedClass mappedConfig = facade.load(input, LoadingMode.STRICT);
 facade.save(mappedConfig, output);
 ```
 
-In the example above, the `ConfigFacade` is typed 
-with the `BasicMappedClass`, thus defining the documentation format. If the loading mode
-is set to `RELAXED`, the mapped class has to have a property that implements the map interface annotated 
-`@UndeclaredOptions`, where the options which do not match any of the classes properties, but appear in the 
-configuration file, are stored.
+In the example above, the `ConfigFacade` uses `BasicMappedClass` to define the documentation format. If the loading mode
+is set to `RELAXED`, the mapped class has to have a field annotated with `@UndeclaredOptions`, where the options that
+do not match any of the classes properties, but appear in the configuration file, are stored. The type of the field
+must be an implementation of `Map<String, String>`. The key in this map contains the name of the section and option 
+separated with a hash sign (section#option). There can be only one field for undeclared options and it has to be in the mapped class
+(not a section class - see "Advanced section definition").
 
 An instance
 of the interface `ConfigAdapter` (the class `IniAdapter()` in particular) is provided, 
@@ -31,6 +32,7 @@ which specifies the format of the configuration file. This is the only implement
 To store the configuration in 
 a file, the method `save` on the `facade` object is called. There also is a method 
 for saving the default values, which does not consult any class instance, only the declaration.
+Field and section descriptions are used as comments in the resulting file.
 
 ## Defining configuration format
 
@@ -41,11 +43,23 @@ from the type of the annotated property. The annotation is also used when settin
 section (`section` parameter) and the description (`description` parameter) of the option. 
 Default values are defined by initializing the class properties.
 
-Moreover numeric options can be restricted using the annotation `@NumericValue` by defining 
-one of the parameters:
+### Numeric options
+
+Numeric options can be restricted using the annotation `@NumericValue` by defining 
+one (or more) of the following parameters:
 * `minimum` sets the numeric minimum of the expected value,
 * `maximum` sets the maximum,
 * boolean value `unsigned` defines, whether the value shall be only positive.
+
+```
+class MappedClass {
+    @ConfigOption
+    @NumericValue(minimum = 128, maximum = 255)
+    int number;
+}
+```
+
+### Enumerated values
 
 The library can also handle values specified by enumerated sets. This is done by declaring
 a java `enum`. When profiting from the default behavior, the enumerated values are
@@ -53,6 +67,21 @@ mapped directly to values in the configuration file. If the user wants to change
 annotation `@ConstantAlias` is available taking two parameters. It maps the value of the 
 `alias` parameter to the value of the `constant`. The `constant` should be specified 
 unqualified (e.g. for mapping `Weekday.SUNDAY` the value `SUNDAY` shall be specified). 
+
+```
+enum Weekday {
+    SUNDAY,
+    MONDAY,
+    ...
+}
+
+class MappedClass {
+    @ConfigOption
+    @ConstantAlias(constant = "SUNDAY", alias = "Sunday")
+    @ConstantAlias(constant = "MONDAY", alias = "Monday")
+    Weekday cleanupDay;
+}
+```
 
 ## Use cases
 
@@ -78,7 +107,8 @@ as a generic type. Then call the method load on the facade that will instantiate
 ```java
 // Defining the mapped class
 class BasicMappedClass {
-	@ConfigOption(section = "network")
+    // The description is optional and will be used as a comment if the configuration is saved to a file
+	@ConfigOption(section = "network", description = "Host name of the server")
 	private String hostname;
 
 	@ConfigOption(section = "network")
@@ -117,10 +147,17 @@ String hostname = config.getHostname();
 //...
 ```
 
-### Reusing a section definition
+### Advanced section definition
 
 Thanks to the flexibility of object oriented programming, user can reuse a definition of a section as a template 
-multiple times. Consult the following example.
+multiple times. The following is an example of a configuration file and its mapping using this feature.
+
+```
+[section_a]
+stringOption=string1
+[section_b]
+stringOption=string2
+```
 
 ```java
 class NestedSectionMappedClass {
@@ -133,10 +170,10 @@ class NestedSectionMappedClass {
 		}
 	}
 
-	@ConfigSection
+	@ConfigSection(name = "section_a", description = "Section A")
 	SectionWithOneStringOption sectionA;
 
-	@ConfigSection
+	@ConfigSection(name = "section_b", description = "Section B", optional = true)
 	SectionWithOneStringOption sectionB;
 }
 
@@ -147,3 +184,9 @@ NestedSectionMappedClass config = new NestedSectionMappedClass();
 String stringFromSectionA = config.sectionA.getStringOption();
 String stringFromSectionB = config.sectionB.getStringOption();
 ``` 
+
+This way of defining sections also allows the user to set descriptions for 
+sections and to mark them as optional - when they are left out from the 
+configuration file, the corresponding field of the mapped object is set to null.
+If that is not the desired behavior, don't make the section optional, but
+set defaults for all of its fields.
