@@ -16,7 +16,12 @@ public class ConfigFacade<MappedObject> {
 	/**
 	 * The configuration mapper
 	 */
-	private final ConfigMapper<MappedObject> mapper;
+	private final ConfigMapper mapper;
+
+	/**
+	 * The class on which the configuration is mapped
+	 */
+	private final Class<MappedObject> cls;
 
 	/**
 	 * @param cls The class on which configuration files should be mapped
@@ -24,7 +29,8 @@ public class ConfigFacade<MappedObject> {
 	 */
 	public ConfigFacade(Class<MappedObject> cls, ConfigAdapter adapter) {
 		this.adapter = adapter;
-		this.mapper = new ConfigMapper<MappedObject>(cls);
+		this.cls = cls;
+		this.mapper = new ConfigMapper();
 	}
 
 	/**
@@ -36,7 +42,7 @@ public class ConfigFacade<MappedObject> {
 	 * @throws ConfigurationException when the configuration file is malformed
 	 */
 	public <MappedObject> MappedObject load(InputStream input, LoadingMode mode) throws MappingException, ConfigurationException {
-		return mapper.load(adapter.read(input), mode);
+		return (MappedObject) mapper.load(adapter.read(input), cls, mode);
 	}
 
 	/**

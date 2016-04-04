@@ -6,31 +6,20 @@ import cz.cuni.mff.ConfigMapper.Nodes.Root;
 /**
  * Maps {@link ConfigNode} structures to objects
  */
-public class ConfigMapper<MappedObject> {
+public class ConfigMapper {
 
 	/**
-	 * Class of mapped objects
-	 */
-	private Class<MappedObject> cls;
-
-	/**
-	 * @param cls Class the mapper should map config objects to
-	 */
-	public ConfigMapper(Class<MappedObject> cls) {
-		this.cls = cls;
-	}
-
-	/**
-	 * Map config to a newly created instance of MappedObject
+	 * Map config to a newly created instance of a class
 	 *
 	 * @param config The configuration tree to be mapped
-	 * @param mode   The mapping mode
-	 * @throws MappingException When the loaded configuration cannot be mapped onto na object of given class
-	 * @return A new instance of MappedObject with options from config
+	 * @param cls The class the configuration will be mapped to
+	 * @param mode The mapping mode
+	 * @throws MappingException When the loaded configuration cannot be mapped onto an object of given class
+	 * @return A new instance of given class with options from config
 	 */
-	public <MappedObject> MappedObject load(Root config, LoadingMode mode) throws MappingException {
+	public Object load(Root config, Class<?> cls, LoadingMode mode) throws MappingException {
 		try {
-			return (MappedObject) cls.newInstance();
+			return cls.newInstance();
 		} catch (InstantiationException e) {
 			throw new MappingException(String.format(
 				"Could not instantiate mapped class %s - does it have a default constructor?",
@@ -45,12 +34,13 @@ public class ConfigMapper<MappedObject> {
 	}
 
 	/**
-	 * Store mapped options from a MappedObject instance to a new configuration structure.
+	 * Store mapped options from an object to a new configuration structure.
+	 * The mapping information is automatically extracted from the objects class.
 	 *
 	 * @param object The source instance
 	 * @return The new configuration structure
 	 */
-	public Root save(MappedObject object) {
+	public Root save(Object object) {
 		return null;
 	}
 }

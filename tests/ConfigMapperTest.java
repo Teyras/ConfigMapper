@@ -41,8 +41,8 @@ public class ConfigMapperTest {
 		));
 
 		// Instantiate the mapper
-		ConfigMapper<BasicMappedClass> mapper = new ConfigMapper<>(BasicMappedClass.class);
-		BasicMappedClass object = mapper.load(config, LoadingMode.STRICT);
+		ConfigMapper mapper = new ConfigMapper();
+		BasicMappedClass object = (BasicMappedClass) mapper.load(config, BasicMappedClass.class, LoadingMode.STRICT);
 
 		// Check the loaded values
 		assertEquals("value", object.optionString);
