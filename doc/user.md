@@ -17,10 +17,10 @@ BasicMappedClass mappedConfig = facade.load(input, LoadingMode.STRICT);
 facade.save(mappedConfig, output);
 ```
 
-In the example above, the `ConfigFacade` is typed (TODO: typed neni spravny slovo!!) 
+In the example above, the `ConfigFacade` is typed 
 with the `BasicMappedClass`, thus defining the documentation format. If the loading mode
-is set to `RELAXED`, the mapped class has to have a property (TODO: map type?) annotated `@UndeclaredOptions`,
-where the options which do not match any of the classes properties, but appear in the 
+is set to `RELAXED`, the mapped class has to have a property that implements the map interface annotated 
+`@UndeclaredOptions`, where the options which do not match any of the classes properties, but appear in the 
 configuration file, are stored.
 
 An instance
@@ -53,3 +53,81 @@ mapped directly to values in the configuration file. If the user wants to change
 annotation `@ConstantAlias` is available taking two parameters. It maps the value of the 
 `alias` parameter to the value of the `constant`. The `constant` should be specified 
 unqualified (e.g. for mapping `Weekday.SUNDAY` the value `SUNDAY` shall be specified). 
+
+## Use cases
+
+The following section introduces a couple of examples on how to use this library.
+
+### Basic example
+
+Let's say we have a very simple `.ini` file (example bellow) and we just want to quickly parse its' elements
+and continue programming. 
+
+```
+[network]
+hostname = myserver.com
+port = 3663
+
+[logging]
+debug = off
+```
+
+To parse the file above we have to create a config class with corresponding properties and pass it to the `ConfigFacade`
+as a generic type. Then call the method load on the facade that will instantiate the properties of the config class.
+
+```java
+// Defining the mapped class
+class BasicMappedClass {
+	@ConfigOption(section = "network")
+	public String hostname;
+
+	@ConfigOption(section = "network")
+	public int port;
+
+	@ConfigOption(section = "logging")
+	public boolean debug;
+}
+
+// instantiating the facade and loading the contents of the file
+ConfigFacade<NestedSectionMappedClass> facade = new ConfigFacade<>(NestedSectionMappedClass.class, new IniAdapter());
+BasicMappedClass config = new BasicMappedClass(); 
+try (FileInputStream fis = new FileInputStream(new File("myIni.ini"))) {
+	config = facade.load(input, LoadingMode.STRICT);
+} catch (IOException e) {
+	System.err.println(e.getStackTrace());
+}
+
+/*	
+ * retrieving loaded options. This could be done depending on the user either using public properties as in this
+ * example, or by getters and setters defined by the user in the mapped class 
+ */
+String s = config.optionString; 
+//...
+```
+
+### Reusing a section definition
+
+Thanks to the flexibility of object oriented programming, user can reuse a definition of a section as a template 
+multiple times. Consult the following example.
+
+```java
+class NestedSectionMappedClass {
+	class SectionWithOneStringOption {
+		@ConfigOption
+		public String stringOption;
+	}
+
+	@ConfigSection
+	SectionWithOneStringOption sectionA;
+
+	@ConfigSection
+	SectionWithOneStringOption sectionB;
+}
+
+NestedSectionMappedClass config = new NestedSectionMappedClass();
+// instantiating the facade and loading the contents of the file is done as in the example above so it is left out here
+
+// retrieving the parameters 
+String stringFromSectionA = config.sectionA.stringOption;
+String stringFromSectionB = config.sectionB.stringOption;
+``` 
