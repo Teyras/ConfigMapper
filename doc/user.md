@@ -43,6 +43,16 @@ from the type of the annotated property. The annotation is also used when settin
 section (`section` parameter) and the description (`description` parameter) of the option. 
 Default values are defined by initializing the class properties.
 
+### Type mapping
+
+| Java type         | INI type        |
+| ----------------- | --------------- |
+| String, enum      | string          |
+| boolean           | boolean         |
+| long, int         | integer         |
+| float, double     | float           |
+| List<String>      | list            |
+
 ### Numeric options
 
 Numeric options can be restricted using the annotation `@NumericValue` by defining 
