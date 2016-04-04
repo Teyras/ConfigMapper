@@ -87,15 +87,15 @@ class BasicMappedClass {
 	@ConfigOption(section = "logging")
 	private boolean debug;
 	
-	public boolean getDebug(){
+	public boolean getDebug() {
 		return debug;
 	}
 	
-	public int getPort(){
+	public int getPort() {
 		return port;
 	}
 	
-	public String getHostname(){
+	public String getHostname() {
 		return hostname;
 	}
 }
