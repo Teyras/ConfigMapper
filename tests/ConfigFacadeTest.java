@@ -1,11 +1,13 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
+import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigFacade;
 import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -29,13 +31,24 @@ public class ConfigFacadeTest {
 		@ConfigOption(section = "section2")
 		public boolean optionBool;
 	}
+	
+	class BasicMappedRelaxedClass {
+		@ConfigOption(section = "section1")
+		public String optionString;
+
+		@ConfigOption(section = "section2")
+		public boolean optionBool;
+		
+		@UndeclaredOptions
+		public Map<String,String> undeclaredOpts;
+	}
 
 	@Test
 	public void loadIniBasic() throws Exception {
 		StringInputStream input = new StringInputStream(
-			"[sectionA]\n" +
+			"[section1]\n" +
 				"optionString = value\n" +
-				"[sectionB]\n" +
+				"[section2]\n" +
 				"optionInt = 234\n" +
 				"optionBool = true\n"
 		);
@@ -46,8 +59,15 @@ public class ConfigFacadeTest {
 		assertEquals(object.optionString, "value");
 		assertEquals(object.optionInt, 234);
 		assertEquals(object.optionBool, true);
+		
+		ConfigFacade<BasicMappedRelaxedClass> facadeRelaxed = new ConfigFacade<>(BasicMappedRelaxedClass.class, new IniAdapter());
+		BasicMappedRelaxedClass objectRelaxed = facadeRelaxed.load(input, LoadingMode.RELAXED);
+		
+		assertEquals(objectRelaxed.optionBool, true);
+		assertEquals(objectRelaxed.optionString, "value");
+		assertEquals(objectRelaxed.undeclaredOpts.get("sectionB#optionInt"), "234");
 	}
-
+	
 	class NestedSectionMappedClass {
 		class FooSection {
 			@ConfigOption
