@@ -71,6 +71,13 @@ way to alias `enum` constants so that their names don't have to match the
 options in the configuration files. The `ConstantAlias` annotation facilitates 
 that.
 
+## The relaxed loading mode
+
+Fields that don't have any declaration cannot be mapped to class attributes.
+The library provides the `UndeclaredOptions` annotation that allows storing
+undeclared options as a key-value map in the annotated field. Because the 
+type of these options is unknown, their values are stored as strings.
+
 # The `ConfigMapper` class
 
 The `load` and `save` methods work with a tree structure based on the 
