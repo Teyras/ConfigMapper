@@ -141,7 +141,7 @@ class BasicMappedClass {
 }
 
 // instantiating the facade and loading the contents of the file
-ConfigFacade<NestedSectionMappedClass> facade = new ConfigFacade<>(NestedSectionMappedClass.class, new IniAdapter());
+ConfigFacade<BasicMappedClass> facade = new ConfigFacade<>(BasicMappedClass.class, new IniAdapter());
 BasicMappedClass config = new BasicMappedClass(); 
 try (FileInputStream fis = new FileInputStream(new File("myIni.ini"))) {
 	config = facade.load(input, LoadingMode.STRICT);
