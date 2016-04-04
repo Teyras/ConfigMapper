@@ -79,13 +79,25 @@ as a generic type. Then call the method load on the facade that will instantiate
 // Defining the mapped class
 class BasicMappedClass {
 	@ConfigOption(section = "network")
-	public String hostname;
+	private String hostname;
 
 	@ConfigOption(section = "network")
-	public int port;
+	private int port;
 
 	@ConfigOption(section = "logging")
-	public boolean debug;
+	private boolean debug;
+	
+	public boolean getDebug(){
+		return debug;
+	}
+	
+	public int getPort(){
+		return port;
+	}
+	
+	public String getHostname(){
+		return hostname;
+	}
 }
 
 // instantiating the facade and loading the contents of the file
@@ -101,7 +113,7 @@ try (FileInputStream fis = new FileInputStream(new File("myIni.ini"))) {
  * retrieving loaded options. This could be done depending on the user either using public properties as in this
  * example, or by getters and setters defined by the user in the mapped class 
  */
-String s = config.optionString; 
+String hostname = config.getHostname(); 
 //...
 ```
 
@@ -114,7 +126,11 @@ multiple times. Consult the following example.
 class NestedSectionMappedClass {
 	class SectionWithOneStringOption {
 		@ConfigOption
-		public String stringOption;
+		private String stringOption;
+		
+		public String getStringOption() {
+			return stringOption;
+		}
 	}
 
 	@ConfigSection
@@ -128,6 +144,6 @@ NestedSectionMappedClass config = new NestedSectionMappedClass();
 // instantiating the facade and loading the contents of the file is done as in the example above so it is left out here
 
 // retrieving the parameters 
-String stringFromSectionA = config.sectionA.stringOption;
-String stringFromSectionB = config.sectionB.stringOption;
+String stringFromSectionA = config.sectionA.getStringOption();
+String stringFromSectionB = config.sectionB.getStringOption();
 ``` 
