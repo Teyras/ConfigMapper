@@ -93,7 +93,23 @@ better design.
 
 INI files are parsed and written by the `IniAdapter` class, an implementation of 
 the `ConfigAdapter` interface. This makes it possible to support other 
-configuration file formats in the future, such as YAML or JSON. 
+configuration file formats in the future, such as YAML or JSON.
+
+## Dealing with unexpected situations
+
+This section refers to the INIAdapter as well as the expected behavior of other
+custom `ConfigAdapter` interface implementations.
+
+### Reading
+
+### Writing
+
+When writing to a stream, two types of Exceptions are thrown:
+* ConfigurationException when the supplied configuration does not have a format that
+ is compatible with the specification of the configuration file format (for ini files this
+ happens either when a Section node has another section node as a child, or when there are
+ not only sections amongst children of the Root node).
+* IOException when there is something wrong with writing to the output stream
 
 # The `ConfigFacade` class
 
