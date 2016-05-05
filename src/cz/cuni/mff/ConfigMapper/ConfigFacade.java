@@ -87,7 +87,7 @@ public class ConfigFacade<MappedObject> {
 	 * @param output The output stream
 	 * @throws ConfigurationException When the file cannot be saved in the format supported by the adapter
 	 */
-	public void save(MappedObject object, OutputStream output) throws ConfigurationException {
+	public void save(MappedObject object, OutputStream output) throws ConfigurationException, IOException {
 		adapter.write(mapper.save(object), output);
 	}
 
@@ -95,29 +95,30 @@ public class ConfigFacade<MappedObject> {
 	 * Save an object into a file
 	 * @param object The mapped object
 	 * @param file The output file
-	 * @throws FileNotFoundException when the output file cannot be found
+	 * @throws IOException when there is a problem with the output file
 	 * @throws ConfigurationException When the file cannot be saved in the format supported by the adapter
 	 */
-	public void save(MappedObject object, File file) throws FileNotFoundException, ConfigurationException {
+	public void save(MappedObject object, File file) throws IOException, ConfigurationException {
 		save(object, new FileOutputStream(file));
 	}
 
 	/**
 	 * Save the default values for the mapped class into an OutputStream
 	 * @param output The output stream
+	 * @throws IOException when there is a problem with the output file
 	 * @throws ConfigurationException when the default values cannot be saved in the format supported by the adapter
 	 */
-	public void saveDefaults(OutputStream output) throws ConfigurationException {
+	public void saveDefaults(OutputStream output) throws IOException, ConfigurationException {
 
 	}
 
 	/**
 	 * Save the default values for the mapped class into a file
 	 * @param file The output file
-	 * @throws FileNotFoundException when the output file cannot be found
+	 * @throws IOException when there is a problem with the output file
 	 * @throws ConfigurationException when the default values cannot be saved in the format supported by the adapter
 	 */
-	public void saveDefaults(File file) throws FileNotFoundException, ConfigurationException {
+	public void saveDefaults(File file) throws IOException, ConfigurationException {
 		saveDefaults(new FileOutputStream(file));
 	}
 }

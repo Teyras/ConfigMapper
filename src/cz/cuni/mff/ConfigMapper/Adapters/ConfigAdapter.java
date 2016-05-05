@@ -3,6 +3,7 @@ package cz.cuni.mff.ConfigMapper.Adapters;
 import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -26,5 +27,5 @@ public interface ConfigAdapter {
 	 * @param output The output stream
 	 * @throws ConfigurationException When the configuration cannot be written in this adapters format
 	 */
-	void write(Root config, OutputStream output) throws ConfigurationException;
+	void write(Root config, OutputStream output) throws ConfigurationException, IOException;
 }
