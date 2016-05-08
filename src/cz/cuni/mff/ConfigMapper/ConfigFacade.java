@@ -41,8 +41,8 @@ public class ConfigFacade<MappedObject> {
 	 * @throws MappingException when the configuration file cannot be mapped onto this mappers class
 	 * @throws ConfigurationException when the configuration file is malformed
 	 */
-	public <MappedObject> MappedObject load(InputStream input, LoadingMode mode) throws MappingException, ConfigurationException {
-		return (MappedObject) mapper.load(adapter.read(input), cls, mode);
+	public MappedObject load(InputStream input, LoadingMode mode) throws MappingException, ConfigurationException {
+		return mapper.load(adapter.read(input), cls, mode);
 	}
 
 	/**
@@ -52,7 +52,7 @@ public class ConfigFacade<MappedObject> {
 	 * @throws MappingException when the configuration file cannot be mapped onto this mappers class
 	 * @throws ConfigurationException when the configuration file is malformed
 	 */
-	public <MappedObject> MappedObject load(InputStream input) throws MappingException, ConfigurationException {
+	public MappedObject load(InputStream input) throws MappingException, ConfigurationException {
 		return load(input, LoadingMode.STRICT);
 	}
 
@@ -65,7 +65,7 @@ public class ConfigFacade<MappedObject> {
 	 * @throws MappingException when the configuration file cannot be mapped onto this mappers class
 	 * @throws ConfigurationException when the configuration file is malformed
 	 */
-	public <MappedObject> MappedObject load(File file, LoadingMode mode) throws FileNotFoundException, MappingException, ConfigurationException {
+	public MappedObject load(File file, LoadingMode mode) throws FileNotFoundException, MappingException, ConfigurationException {
 		return load(new FileInputStream(file), mode);
 	}
 
@@ -77,7 +77,7 @@ public class ConfigFacade<MappedObject> {
 	 * @throws MappingException when the configuration file cannot be mapped onto this mappers class
 	 * @throws ConfigurationException when the configuration file is malformed
 	 */
-	public <MappedObject> MappedObject load(File file) throws FileNotFoundException, MappingException, ConfigurationException {
+	public MappedObject load(File file) throws FileNotFoundException, MappingException, ConfigurationException {
 		return load(new FileInputStream(file), LoadingMode.STRICT);
 	}
 

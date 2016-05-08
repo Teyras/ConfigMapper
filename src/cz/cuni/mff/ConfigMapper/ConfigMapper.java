@@ -22,7 +22,7 @@ public class ConfigMapper {
 	 * @throws MappingException When the loaded configuration cannot be mapped onto an object of given class
 	 * @return A new instance of given class with options from config
 	 */
-	public Object load(Root config, Class<?> cls, LoadingMode mode) throws MappingException {
+	public <MappedObject> MappedObject load(Root config, Class<MappedObject> cls, LoadingMode mode) throws MappingException {
 		try {
 			// Map available configuration option names to reflections of corresponding fields
 			Map<Path, Field> options = new HashMap<>();
@@ -44,10 +44,10 @@ public class ConfigMapper {
 			}
 
 			// Create a new instance of the mapped class
-			Constructor<?> constructor = cls.getDeclaredConstructor();
+			Constructor<MappedObject> constructor = cls.getDeclaredConstructor();
 			boolean constructorAccessible = constructor.isAccessible();
 			constructor.setAccessible(true);
-			Object instance = constructor.newInstance();
+			MappedObject instance = constructor.newInstance();
 			constructor.setAccessible(constructorAccessible);
 
 			// Traverse the configuration tree and map it onto the newly created instance
@@ -220,4 +220,19 @@ class Path {
 	public String toString() {
 		return String.join("#", components);
 	}
+}
+
+class Destination {
+	final Object instance;
+
+	final Field field;
+
+	Destination(Object instance, Field field) {
+		this.instance = instance;
+		this.field = field;
+	}
+}
+
+class Context {
+
 }
