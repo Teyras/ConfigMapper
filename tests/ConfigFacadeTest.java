@@ -53,15 +53,15 @@ public class ConfigFacadeTest {
 				"optionBool = true\n"
 		);
 
-		ConfigFacade<BasicMappedClass> facade = new ConfigFacade<>(BasicMappedClass.class, new IniAdapter());
-		BasicMappedClass object = facade.load(input, LoadingMode.STRICT);
+		ConfigFacade facade = new ConfigFacade(new IniAdapter());
+		BasicMappedClass object = facade.load(input, BasicMappedClass.class, LoadingMode.STRICT);
 
 		assertEquals(object.optionString, "value");
 		assertEquals(object.optionInt, 234);
 		assertEquals(object.optionBool, true);
 		
-		ConfigFacade<BasicMappedRelaxedClass> facadeRelaxed = new ConfigFacade<>(BasicMappedRelaxedClass.class, new IniAdapter());
-		BasicMappedRelaxedClass objectRelaxed = facadeRelaxed.load(input, LoadingMode.RELAXED);
+		ConfigFacade facadeRelaxed = new ConfigFacade(new IniAdapter());
+		BasicMappedRelaxedClass objectRelaxed = facadeRelaxed.load(input, BasicMappedRelaxedClass.class, LoadingMode.RELAXED);
 		
 		assertEquals(objectRelaxed.optionBool, true);
 		assertEquals(objectRelaxed.optionString, "value");
@@ -90,8 +90,8 @@ public class ConfigFacadeTest {
 				"option = value2\n"
 		);
 
-		ConfigFacade<NestedSectionMappedClass> facade = new ConfigFacade<>(NestedSectionMappedClass.class, new IniAdapter());
-		NestedSectionMappedClass object = facade.load(input, LoadingMode.STRICT);
+		ConfigFacade facade = new ConfigFacade(new IniAdapter());
+		NestedSectionMappedClass object = facade.load(input, NestedSectionMappedClass.class, LoadingMode.STRICT);
 
 		assertEquals(object.sectionA.option, "value");
 		assertEquals(object.sectionB.option, "value2");
