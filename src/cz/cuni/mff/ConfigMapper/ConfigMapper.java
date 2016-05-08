@@ -1,6 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
+import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 
 import java.lang.reflect.Constructor;
@@ -33,24 +34,48 @@ public class ConfigMapper {
 
 			// Create a new mapping context
 			Context context = new Context();
+			context.mode = mode;
 
 			// Map available configuration option names to reflections of corresponding fields
 			for (Field field : cls.getDeclaredFields()) {
-				ConfigOption annotation = field.getAnnotation(ConfigOption.class);
+				ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
 
-				if (annotation != null) {
-					String name = !annotation.name().equals("")
-						? annotation.name()
+				if (fieldAnnotation != null) {
+					String name = !fieldAnnotation.name().equals("")
+						? fieldAnnotation.name()
 						: field.getName();
 
-					if (!annotation.section().equals("")) {
+					if (!fieldAnnotation.section().equals("")) {
 						context.options.put(
-							new Path(annotation.section(), name),
+							new Path(fieldAnnotation.section(), name),
 							new Destination(instance, field)
 						);
 					} else {
 						context.options.put(new Path(name), new Destination(instance, field));
 					}
+				}
+
+				UndeclaredOptions undeclaredAnnotation = field.getAnnotation(UndeclaredOptions.class);
+
+				if (undeclaredAnnotation != null) {
+					if (context.undeclaredOptions != null) {
+						throw new MappingException(String.format(
+							"Class %s contains more than one field with @UndeclaredOptions",
+							cls.getName()
+						));
+					}
+
+					field.setAccessible(true);
+
+					if (!(field.get(instance) instanceof Map<?, ?>)) {
+						throw new MappingException(String.format(
+							"Field %s of class %s is not of type Map<String, String>",
+							field.getName(),
+							cls.getName()
+						));
+					}
+
+					context.undeclaredOptions = (Map<String, String>) field.get(instance);
 				}
 			}
 
@@ -129,7 +154,26 @@ public class ConfigMapper {
 		Destination destination = context.options.get(path);
 
 		if (destination == null) {
-			throw new MappingException(""); // TODO
+			if (context.mode != LoadingMode.RELAXED) {
+				throw new MappingException(String.format(
+					"Undeclared option %s",
+					path
+				));
+			}
+
+			if (option instanceof ScalarOption) {
+				context.undeclaredOptions.put(
+					path.toString(),
+					((ScalarOption) option).getValue()
+				);
+			} else if (option instanceof ListOption) {
+				context.undeclaredOptions.put(
+					path.toString(),
+					String.join(":", ((ListOption) option).getValue())
+				);
+			}
+
+			return;
 		}
 
 		Field field = destination.field;
@@ -255,4 +299,14 @@ class Context {
 	 * Maps fully qualified option names to fields that should contain their values
 	 */
 	final Map<Path, Destination> options = new HashMap<>();
+
+	/**
+	 * A map where undeclared options should be stored
+	 */
+	Map<String, String> undeclaredOptions;
+
+	/**
+	 * The loading mode of the current mapping operation
+	 */
+	LoadingMode mode;
 }
