@@ -24,9 +24,17 @@ public class ConfigMapper {
 	 */
 	public <MappedObject> MappedObject load(Root config, Class<MappedObject> cls, LoadingMode mode) throws MappingException {
 		try {
-			// Map available configuration option names to reflections of corresponding fields
-			Map<Path, Field> options = new HashMap<>();
+			// Create a new instance of the mapped class
+			Constructor<MappedObject> constructor = cls.getDeclaredConstructor();
+			boolean constructorAccessible = constructor.isAccessible();
+			constructor.setAccessible(true);
+			MappedObject instance = constructor.newInstance();
+			constructor.setAccessible(constructorAccessible);
 
+			// Create a new mapping context
+			Context context = new Context();
+
+			// Map available configuration option names to reflections of corresponding fields
 			for (Field field : cls.getDeclaredFields()) {
 				ConfigOption annotation = field.getAnnotation(ConfigOption.class);
 
@@ -36,26 +44,22 @@ public class ConfigMapper {
 						: field.getName();
 
 					if (!annotation.section().equals("")) {
-						options.put(new Path(annotation.section(), name), field);
+						context.options.put(
+							new Path(annotation.section(), name),
+							new Destination(instance, field)
+						);
 					} else {
-						options.put(new Path(name), field);
+						context.options.put(new Path(name), new Destination(instance, field));
 					}
 				}
 			}
 
-			// Create a new instance of the mapped class
-			Constructor<MappedObject> constructor = cls.getDeclaredConstructor();
-			boolean constructorAccessible = constructor.isAccessible();
-			constructor.setAccessible(true);
-			MappedObject instance = constructor.newInstance();
-			constructor.setAccessible(constructorAccessible);
-
 			// Traverse the configuration tree and map it onto the newly created instance
 			for (ConfigNode node : config.getChildren()) {
 				if (node instanceof Section) {
-					mapSection((Section) node, new Path(node.getName()), instance, options);
+					mapSection((Section) node, new Path(node.getName()), context);
 				} else if (node instanceof Option) {
-					mapOption((Option) node, new Path(node.getName()), instance, options);
+					mapOption((Option) node, new Path(node.getName()), context);
 				} else {
 					throw new MappingException("Unsupported structure of the configuration tree");
 				}
@@ -100,14 +104,13 @@ public class ConfigMapper {
 	 * Map a section of the configuration onto an instance of the mapped class.
 	 * @param section The section to be mapped
 	 * @param path The path to the section
-	 * @param instance An instance of the mapped class
-	 * @param options A map from option paths to their destinations
+	 * @param context The mapping context
 	 * @throws MappingException When the section is ill-formed
 	 */
-	private void mapSection(Section section, Path path, Object instance, Map<Path, Field> options) throws MappingException {
+	private void mapSection(Section section, Path path, Context context) throws MappingException {
 		for (ConfigNode node : section.getChildren()) {
 			if (node instanceof Option) {
-				mapOption((Option) node, path.add(node.getName()), instance, options);
+				mapOption((Option) node, path.add(node.getName()), context);
 			} else {
 				throw new MappingException(""); // TODO
 			}
@@ -118,17 +121,19 @@ public class ConfigMapper {
 	 * Map an option onto an instance of the mapped class.
 	 * @param option The option to be mapped
 	 * @param path The path to the option
-	 * @param instance An instance of the mapped class
-	 * @param options A map from option paths to their destinations
+	 * @param context The mapping context
 	 * @throws MappingException When the option value is not compatible with its corresponding field
 	 *                          or when the option field is undeclared and strict {@link LoadingMode} is used
 	 */
-	private void mapOption(Option option, Path path, Object instance, Map<Path, Field> options) throws MappingException {
-		Field field = options.get(path);
+	private void mapOption(Option option, Path path, Context context) throws MappingException {
+		Destination destination = context.options.get(path);
 
-		if (field == null) {
+		if (destination == null) {
 			throw new MappingException(""); // TODO
 		}
+
+		Field field = destination.field;
+		Object instance = destination.instance;
 
 		boolean fieldAccessible = field.isAccessible();
 		field.setAccessible(true);
@@ -222,9 +227,18 @@ class Path {
 	}
 }
 
+/**
+ * Contains a reflection of a field along with an instance of the object that contains it
+ */
 class Destination {
+	/**
+	 * An instance to which the destination field belongs
+	 */
 	final Object instance;
 
+	/**
+	 * Reflection of the destination field
+	 */
 	final Field field;
 
 	Destination(Object instance, Field field) {
@@ -233,6 +247,12 @@ class Destination {
 	}
 }
 
+/**
+ * Contains information related to a single mapping operation
+ */
 class Context {
-
+	/**
+	 * Maps fully qualified option names to fields that should contain their values
+	 */
+	final Map<Path, Destination> options = new HashMap<>();
 }
