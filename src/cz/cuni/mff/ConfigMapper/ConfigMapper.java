@@ -185,7 +185,7 @@ public class ConfigMapper {
 			if (node instanceof Option) {
 				mapOption((Option) node, path.add(node.getName()), context);
 			} else {
-				throw new MappingException(""); // TODO
+				throw new MappingException("Unsupported configuration structure");
 			}
 		}
 	}
