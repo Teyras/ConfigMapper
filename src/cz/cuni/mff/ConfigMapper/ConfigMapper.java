@@ -1,6 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
+import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 
@@ -24,80 +25,42 @@ public class ConfigMapper {
 	 * @return A new instance of given class with options from config
 	 */
 	public <MappedObject> MappedObject load(Root config, Class<MappedObject> cls, LoadingMode mode) throws MappingException {
+		// Create a new instance of the mapped class
+		MappedObject instance = constructObject(cls);
+
+		// Create a new mapping context
+		Context context = new Context();
+		context.mode = mode;
+
+		// Map available configuration option names to reflections of corresponding fields
+		extractOptions(cls, instance, context, new Path());
+
+		if (mode == LoadingMode.RELAXED && context.undeclaredOptions == null) {
+			throw new MappingException(String.format(
+				"Class %s has no field with @UndeclaredOptions",
+				cls.getName()
+			));
+		}
+
+		// Traverse the configuration tree and map it onto the newly created instance
+		for (ConfigNode node : config.getChildren()) {
+			if (node instanceof Section) {
+				mapSection((Section) node, new Path(node.getName()), context);
+			} else if (node instanceof Option) {
+				mapOption((Option) node, new Path(node.getName()), context);
+			} else {
+				throw new MappingException("Unsupported structure of the configuration tree");
+			}
+		}
+
+		return instance;
+	}
+
+	private <MappedObject> MappedObject constructObject(Class<MappedObject> cls) throws MappingException {
 		try {
-			// Create a new instance of the mapped class
 			Constructor<MappedObject> constructor = cls.getDeclaredConstructor();
-			boolean constructorAccessible = constructor.isAccessible();
 			constructor.setAccessible(true);
-			MappedObject instance = constructor.newInstance();
-			constructor.setAccessible(constructorAccessible);
-
-			// Create a new mapping context
-			Context context = new Context();
-			context.mode = mode;
-
-			// Map available configuration option names to reflections of corresponding fields
-			for (Field field : cls.getDeclaredFields()) {
-				ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
-
-				if (fieldAnnotation != null) {
-					String name = !fieldAnnotation.name().equals("")
-						? fieldAnnotation.name()
-						: field.getName();
-
-					if (!fieldAnnotation.section().equals("")) {
-						context.options.put(
-							new Path(fieldAnnotation.section(), name),
-							new Destination(instance, field)
-						);
-					} else {
-						context.options.put(new Path(name), new Destination(instance, field));
-					}
-				}
-
-				UndeclaredOptions undeclaredAnnotation = field.getAnnotation(UndeclaredOptions.class);
-
-				if (undeclaredAnnotation != null) {
-					if (context.undeclaredOptions != null) {
-						throw new MappingException(String.format(
-							"Class %s contains more than one field with @UndeclaredOptions",
-							cls.getName()
-						));
-					}
-
-					field.setAccessible(true);
-
-					if (!(field.get(instance) instanceof Map<?, ?>)) {
-						throw new MappingException(String.format(
-							"Field %s of class %s is not of type Map<String, String>",
-							field.getName(),
-							cls.getName()
-						));
-					}
-
-					context.undeclaredOptions = (Map<String, String>) field.get(instance);
-				}
-			}
-
-			if (mode == LoadingMode.RELAXED && context.undeclaredOptions == null) {
-				throw new MappingException(String.format(
-					"Class %s has no field with @UndeclaredOptions",
-					cls.getName()
-				));
-			}
-
-			// Traverse the configuration tree and map it onto the newly created instance
-			for (ConfigNode node : config.getChildren()) {
-				if (node instanceof Section) {
-					mapSection((Section) node, new Path(node.getName()), context);
-				} else if (node instanceof Option) {
-					mapOption((Option) node, new Path(node.getName()), context);
-				} else {
-					throw new MappingException("Unsupported structure of the configuration tree");
-				}
-			}
-
-			return instance;
+			return constructor.newInstance();
 		} catch (NoSuchMethodException e) {
 			throw new MappingException(String.format(
 				"Mapped class %s has no default constructor",
@@ -118,6 +81,60 @@ public class ConfigMapper {
 				"The constructor of class %s threw an exception",
 				cls.getName()
 			), e);
+		}
+	}
+
+	private <MappedObject> void extractOptions(Class<MappedObject> cls, MappedObject instance, Context context, Path path) throws MappingException {
+		for (Field field : cls.getDeclaredFields()) {
+			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
+
+			if (fieldAnnotation != null) {
+				String name = !fieldAnnotation.name().equals("")
+					? fieldAnnotation.name()
+					: field.getName();
+
+				if (!fieldAnnotation.section().equals("")) {
+					context.options.put(
+						new Path(fieldAnnotation.section(), name),
+						new Destination(instance, field)
+					);
+				} else {
+					context.options.put(new Path(name), new Destination(instance, field));
+				}
+			}
+
+			UndeclaredOptions undeclaredAnnotation = field.getAnnotation(UndeclaredOptions.class);
+
+			if (undeclaredAnnotation != null) {
+				if (context.undeclaredOptions != null) {
+					throw new MappingException(String.format(
+						"Class %s contains more than one field with @UndeclaredOptions",
+						cls.getName()
+					));
+				}
+
+				field.setAccessible(true);
+
+				try {
+					if (!(field.get(instance) instanceof Map<?, ?>)) {
+						throw new MappingException(String.format(
+							"Field %s of class %s is not of type Map<String, String>",
+							field.getName(),
+							cls.getName()
+						));
+					}
+
+					context.undeclaredOptions = (Map<String, String>) field.get(instance);
+				} catch (IllegalAccessException e) {
+					assert false;
+				}
+			}
+
+			ConfigSection sectionAnnotation = field.getAnnotation(ConfigSection.class);
+
+			if (sectionAnnotation != null) {
+				Class<?> sectionCls = field.getType();
+			}
 		}
 	}
 
