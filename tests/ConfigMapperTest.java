@@ -7,6 +7,7 @@ import cz.cuni.mff.ConfigMapper.Nodes.*;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,5 +98,31 @@ public class ConfigMapperTest {
 		expected.put("section1#option2", "10");
 
 		assertEquals(expected, object.other);
+	}
+
+	static class MultipleUndeclaredOptionsFields {
+		@UndeclaredOptions
+		public Map<String, String> other1 = new HashMap<>();
+
+		@UndeclaredOptions
+		public Map<String, String> other2 = new HashMap<>();
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadRelaxedMultipleUndeclaredContainersThrows() throws Exception {
+		Root config = new Root("config.ini", Collections.emptyList());
+
+		// Instantiate the mapper
+		ConfigMapper mapper = new ConfigMapper();
+		MultipleUndeclaredOptionsFields object = mapper.load(config, MultipleUndeclaredOptionsFields.class, LoadingMode.RELAXED);
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadRelaxedNoUndeclaredContainersThrows() throws Exception {
+		Root config = new Root("config.ini", Collections.emptyList());
+
+		// Instantiate the mapper
+		ConfigMapper mapper = new ConfigMapper();
+		BasicMappedClass object = mapper.load(config, BasicMappedClass.class, LoadingMode.RELAXED);
 	}
 }

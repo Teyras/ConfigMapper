@@ -79,6 +79,13 @@ public class ConfigMapper {
 				}
 			}
 
+			if (mode == LoadingMode.RELAXED && context.undeclaredOptions == null) {
+				throw new MappingException(String.format(
+					"Class %s has no field with @UndeclaredOptions",
+					cls.getName()
+				));
+			}
+
 			// Traverse the configuration tree and map it onto the newly created instance
 			for (ConfigNode node : config.getChildren()) {
 				if (node instanceof Section) {
