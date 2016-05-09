@@ -14,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by teyras on 29.3.16.
  */
-public class ConfigMapperTest {
+public class ConfigMapperLoadTest {
 	static class BasicMappedClass {
 		@ConfigOption(section = "section1")
 		public String optionString;
