@@ -1,4 +1,5 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
+import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
@@ -6,10 +7,7 @@ import cz.cuni.mff.ConfigMapper.MappingException;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -124,5 +122,36 @@ public class ConfigMapperTest {
 		// Instantiate the mapper
 		ConfigMapper mapper = new ConfigMapper();
 		BasicMappedClass object = mapper.load(config, BasicMappedClass.class, LoadingMode.RELAXED);
+	}
+
+	static class StructuredSectionMappedClass {
+		static class FooSection {
+			@ConfigOption
+			public String option;
+		}
+
+		@ConfigSection
+		FooSection sectionA;
+
+		@ConfigSection(name = "sectionAA")
+		FooSection sectionB;
+	}
+
+	@Test
+	public void loadStructured() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("sectionA", Arrays.asList(
+				new ScalarOption("option", "value")
+			)),
+			new Section("sectionAA", Arrays.asList(
+				new ScalarOption("option", "value2")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		StructuredSectionMappedClass object = mapper.load(config, StructuredSectionMappedClass.class, LoadingMode.STRICT);
+
+		assertEquals(object.sectionA.option, "value");
+		assertEquals(object.sectionB.option, "value2");
 	}
 }

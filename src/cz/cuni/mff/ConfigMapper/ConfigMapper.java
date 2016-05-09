@@ -84,7 +84,7 @@ public class ConfigMapper {
 		}
 	}
 
-	private <MappedObject> void extractOptions(Class<MappedObject> cls, MappedObject instance, Context context, Path path) throws MappingException {
+	private void extractOptions(Class<?> cls, Object instance, Context context, Path path) throws MappingException {
 		for (Field field : cls.getDeclaredFields()) {
 			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
 
@@ -95,11 +95,14 @@ public class ConfigMapper {
 
 				if (!fieldAnnotation.section().equals("")) {
 					context.options.put(
-						new Path(fieldAnnotation.section(), name),
+						path.add(fieldAnnotation.section()).add(name),
 						new Destination(instance, field)
 					);
 				} else {
-					context.options.put(new Path(name), new Destination(instance, field));
+					context.options.put(
+						path.add(name),
+						new Destination(instance, field)
+					);
 				}
 			}
 
@@ -134,6 +137,27 @@ public class ConfigMapper {
 
 			if (sectionAnnotation != null) {
 				Class<?> sectionCls = field.getType();
+
+				String name = !sectionAnnotation.name().equals("")
+					? sectionAnnotation.name()
+					: field.getName();
+
+				field.setAccessible(true);
+				Object sectionInstance;
+
+				try {
+					sectionInstance = field.get(instance);
+
+					if (sectionInstance == null) {
+						sectionInstance = constructObject(sectionCls);
+						field.set(instance, sectionInstance);
+					}
+				} catch (IllegalAccessException e) {
+					assert false;
+					return;
+				}
+
+				extractOptions(sectionCls, sectionInstance, context, path.add(name));
 			}
 		}
 	}
