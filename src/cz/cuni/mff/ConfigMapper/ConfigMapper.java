@@ -57,6 +57,13 @@ public class ConfigMapper {
 		return instance;
 	}
 
+	/**
+	 * Create an instance of given class using its default constructor.
+	 * @param cls class to be instantiated
+	 * @param <MappedObject> type of the class
+	 * @return a new instance of given class
+	 * @throws MappingException when the instantiation fails
+	 */
 	private <MappedObject> MappedObject constructObject(Class<MappedObject> cls) throws MappingException {
 		try {
 			Constructor<MappedObject> constructor = cls.getDeclaredConstructor();
@@ -85,6 +92,16 @@ public class ConfigMapper {
 		}
 	}
 
+	/**
+	 * Extract fields annotated as options from given class and store them in the mapping context.
+	 * Section fields that are null will be instantiated automatically.
+	 * @param cls class to be extracted
+	 * @param instance an instance of the class to be linked in the options field of the context
+	 * @param context the mapping context where extracted options will be stored
+	 * @param path path where we currently are in the configuration tree
+	 *             (important for recursive calls on section fields)
+	 * @throws MappingException
+	 */
 	private void extractOptions(Class<?> cls, Object instance, Context context, Path path) throws MappingException {
 		for (Field field : cls.getDeclaredFields()) {
 			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
