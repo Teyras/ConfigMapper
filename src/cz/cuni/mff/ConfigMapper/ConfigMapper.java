@@ -34,7 +34,7 @@ public class ConfigMapper {
 		context.mode = mode;
 
 		// Map available configuration option names to reflections of corresponding fields
-		extractOptions(cls, instance, context, new Path());
+		extractOptions(cls, instance, context, new Path(), true);
 
 		if (mode == LoadingMode.RELAXED && context.undeclaredOptions == null) {
 			throw new MappingException(String.format(
@@ -94,15 +94,16 @@ public class ConfigMapper {
 
 	/**
 	 * Extract fields annotated as options from given class and store them in the mapping context.
-	 * Section fields that are null will be instantiated automatically.
 	 * @param cls class to be extracted
 	 * @param instance an instance of the class to be linked in the options field of the context
 	 * @param context the mapping context where extracted options will be stored
 	 * @param path path where we currently are in the configuration tree
 	 *             (important for recursive calls on section fields)
+	 * @param instantiateSections if set to true, section fields that are null
+	 *                            will be instantiated automatically
 	 * @throws MappingException
 	 */
-	private void extractOptions(Class<?> cls, Object instance, Context context, Path path) throws MappingException {
+	private void extractOptions(Class<?> cls, Object instance, Context context, Path path, boolean instantiateSections) throws MappingException {
 		for (Field field : cls.getDeclaredFields()) {
 			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
 
@@ -167,6 +168,10 @@ public class ConfigMapper {
 					sectionInstance = field.get(instance);
 
 					if (sectionInstance == null) {
+						if (!instantiateSections) {
+							return;
+						}
+
 						sectionInstance = constructObject(sectionCls);
 						field.set(instance, sectionInstance);
 					}
@@ -175,7 +180,7 @@ public class ConfigMapper {
 					return;
 				}
 
-				extractOptions(sectionCls, sectionInstance, context, path.add(name));
+				extractOptions(sectionCls, sectionInstance, context, path.add(name), true);
 			}
 		}
 	}
@@ -194,7 +199,7 @@ public class ConfigMapper {
 
 		// Load metadata from the class
 		Context context = new Context();
-		extractOptions(cls, object, context, new Path());
+		extractOptions(cls, object, context, new Path(), false);
 
 		/**
 		 * A simple holder for a config node and its path
