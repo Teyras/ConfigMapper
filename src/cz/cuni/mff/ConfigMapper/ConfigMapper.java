@@ -247,6 +247,18 @@ public class ConfigMapper {
 			items.add(new ConfigItem(path, node));
 		}
 
+		// Insert undeclared options into the item list
+		if (context.undeclaredOptions != null) {
+			for (Map.Entry<String, String> entry : context.undeclaredOptions.entrySet()) {
+				Path path = new Path(entry.getKey().split("#"));
+
+				items.add(new ConfigItem(
+					path,
+					new ScalarOption(path.lastComponent(), entry.getValue())
+				));
+			}
+		}
+
 		// If there are no options, return an empty configuration tree
 		if (items.size() == 0) {
 			return new Root("", Collections.emptyList());
