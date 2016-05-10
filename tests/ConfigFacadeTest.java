@@ -4,6 +4,7 @@ import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigFacade;
 import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -21,7 +22,7 @@ class StringInputStream extends ByteArrayInputStream {
  * Created by teyras on 30.3.16.
  */
 public class ConfigFacadeTest {
-	class BasicMappedClass {
+	static class BasicMappedClass {
 		@ConfigOption(section = "section1")
 		public String optionString;
 
@@ -32,7 +33,7 @@ public class ConfigFacadeTest {
 		public boolean optionBool;
 	}
 	
-	class BasicMappedRelaxedClass {
+	static class BasicMappedRelaxedClass {
 		@ConfigOption(section = "section1")
 		public String optionString;
 
@@ -43,6 +44,7 @@ public class ConfigFacadeTest {
 		public Map<String,String> undeclaredOpts;
 	}
 
+	@Ignore
 	@Test
 	public void loadIniBasic() throws Exception {
 		StringInputStream input = new StringInputStream(
@@ -68,8 +70,8 @@ public class ConfigFacadeTest {
 		assertEquals(objectRelaxed.undeclaredOpts.get("sectionB#optionInt"), "234");
 	}
 	
-	class NestedSectionMappedClass {
-		class FooSection {
+	static class NestedSectionMappedClass {
+		static class FooSection {
 			@ConfigOption
 			public String option;
 		}
@@ -81,6 +83,7 @@ public class ConfigFacadeTest {
 		FooSection sectionB;
 	}
 
+	@Ignore
 	@Test
 	public void loadIniNested() throws Exception {
 		StringInputStream input = new StringInputStream(
