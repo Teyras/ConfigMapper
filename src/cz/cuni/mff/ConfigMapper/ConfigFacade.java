@@ -84,7 +84,7 @@ public class ConfigFacade {
 	 * @param output The output stream
 	 * @throws ConfigurationException When the file cannot be saved in the format supported by the adapter
 	 */
-	public <MappedObject> void save(MappedObject object, OutputStream output) throws ConfigurationException, IOException {
+	public <MappedObject> void save(MappedObject object, OutputStream output) throws MappingException, ConfigurationException, IOException {
 		adapter.write(mapper.save(object), output);
 	}
 
@@ -95,7 +95,7 @@ public class ConfigFacade {
 	 * @throws IOException when there is a problem with the output file
 	 * @throws ConfigurationException When the file cannot be saved in the format supported by the adapter
 	 */
-	public <MappedObject> void save(MappedObject object, File file) throws IOException, ConfigurationException {
+	public <MappedObject> void save(MappedObject object, File file) throws IOException, MappingException, ConfigurationException {
 		save(object, new FileOutputStream(file));
 	}
 
@@ -105,7 +105,7 @@ public class ConfigFacade {
 	 * @throws IOException when there is a problem with the output file
 	 * @throws ConfigurationException when the default values cannot be saved in the format supported by the adapter
 	 */
-	public <MappedObject> void saveDefaults(Class<MappedObject> cls, OutputStream output) throws IOException, ConfigurationException {
+	public <MappedObject> void saveDefaults(Class<MappedObject> cls, OutputStream output) throws IOException, MappingException, ConfigurationException {
 
 	}
 
@@ -115,7 +115,7 @@ public class ConfigFacade {
 	 * @throws IOException when there is a problem with the output file
 	 * @throws ConfigurationException when the default values cannot be saved in the format supported by the adapter
 	 */
-	public <MappedObject> void saveDefaults(Class<MappedObject> cls, File file) throws IOException, ConfigurationException {
+	public <MappedObject> void saveDefaults(Class<MappedObject> cls, File file) throws IOException, MappingException, ConfigurationException {
 		saveDefaults(cls, new FileOutputStream(file));
 	}
 }

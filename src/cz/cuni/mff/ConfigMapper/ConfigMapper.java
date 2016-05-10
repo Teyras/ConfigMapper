@@ -9,6 +9,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Maps {@link ConfigNode} structures to objects
@@ -164,13 +165,108 @@ public class ConfigMapper {
 
 	/**
 	 * Store mapped options from an object to a new configuration structure.
-	 * The mapping information is automatically extracted from the objects class.
+	 * The mapping information is automatically extracted from the object's class.
 	 *
 	 * @param object The source instance
+	 * @throws MappingException When the mapped object is invalid
 	 * @return The new configuration structure
 	 */
-	public Root save(Object object) {
-		return null;
+	public Root save(Object object) throws MappingException {
+		// Find out the class of the instance
+		Class<?> cls = object.getClass();
+
+		// Load metadata from the class
+		Context context = new Context();
+		extractOptions(cls, object, context, new Path());
+
+		/**
+		 * A simple holder for a config node and its path
+		 */
+		class ConfigItem {
+			private Path path;
+			private ConfigNode node;
+
+			private ConfigItem(Path path, ConfigNode node) {
+				this.path = path;
+				this.node = node;
+			}
+		}
+
+		// Make a list that will contain configuration nodes along with their paths
+		List<ConfigItem> items = new ArrayList<>();
+
+		// Populate the item list with option nodes
+		for (Path path : context.options.keySet()) {
+			Destination destination = context.options.get(path);
+
+			Option node;
+			destination.field.setAccessible(true);
+
+			try {
+				if (destination.field.get(destination.instance) instanceof List) {
+					node = new ListOption(
+						path.lastComponent(),
+						(List<String>) destination.field.get(destination.instance)
+					);
+				} else {
+					node = new ScalarOption(
+						path.lastComponent(),
+						destination.field.get(destination.instance).toString()
+					);
+				}
+			} catch (IllegalAccessException e) {
+				throw new MappingException(String.format(
+					"Field %s of class %s is not accessible",
+					destination.field.getName(),
+					destination.field.getDeclaringClass().getName()
+				));
+			}
+
+			items.add(new ConfigItem(path, node));
+		}
+
+		// If there are no options, return an empty configuration tree
+		if (items.size() == 0) {
+			return new Root("", Collections.emptyList());
+		}
+
+		// Until all items are at the top level (i.e. their paths only have one component)
+		while (!items.stream().allMatch((ConfigItem item) -> item.path.size() == 1)) {
+			// Sort the items so that the ones with longest paths are at the beginning
+			Collections.sort(items, (ConfigItem i1, ConfigItem i2) -> {
+				// Reverse the order by negating the comparison
+				return i2.path.size() - i1.path.size();
+			});
+
+			// Pick the first item from the list
+			ConfigItem item = items.get(0);
+			Set<ConfigItem> pickedItems = new HashSet<>(Collections.singleton(item));
+
+			// Find all items that belong in the same section and remove them from the list
+			for (ConfigItem otherItem : items) {
+				if (otherItem.path.prefix().equals(item.path.prefix())) {
+					pickedItems.add(otherItem);
+				}
+			}
+
+			items.removeAll(pickedItems);
+
+			// Create a new section node that contains the removed items
+			Path sectionPath = item.path.prefix();
+			Section section = new Section(sectionPath.lastComponent(), pickedItems.stream()
+				.map((ConfigItem val) -> val.node)
+				.collect(Collectors.toList())
+			);
+
+			// Insert the new node back into the item list
+			items.add(new ConfigItem(sectionPath, section));
+		}
+
+		// Group the top-level nodes under a root node and return it
+		return new Root("", items.stream()
+			.map((ConfigItem item) -> item.node)
+			.collect(Collectors.toList())
+		);
 	}
 
 	/**
@@ -317,6 +413,22 @@ class Path {
 	public String toString() {
 		return String.join("#", components);
 	}
+
+	int size() {
+		return components.size();
+	}
+
+	String lastComponent() {
+		return components.get(components.size() - 1);
+	}
+
+	Path prefix() {
+		if (components.size() <= 1) {
+			return new Path();
+		}
+
+		return new Path(components.subList(0, components.size() - 1));
+	}
 }
 
 /**
@@ -346,7 +458,7 @@ class Context {
 	/**
 	 * Maps fully qualified option names to fields that should contain their values
 	 */
-	final Map<Path, Destination> options = new HashMap<>();
+	final Map<Path, Destination> options = new LinkedHashMap<>();
 
 	/**
 	 * A map where undeclared options should be stored
