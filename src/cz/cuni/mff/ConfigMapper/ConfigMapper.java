@@ -214,10 +214,20 @@ public class ConfigMapper {
 			}
 		}
 
-		// Make a list that will contain configuration nodes along with their paths
-		List<ConfigItem> items = new ArrayList<>();
+		// Make a data structure that will contain configuration nodes along with their paths,
+		// sorted by the length of their paths (longest path first)
+		SortedSet<ConfigItem> items = new TreeSet<>((ConfigItem i1, ConfigItem i2) -> {
+			// Reverse the order by negating the comparison
+			int diff = i2.path.size() - i1.path.size();
 
-		// Populate the item list with option nodes
+			if (diff != 0) {
+				return diff;
+			}
+
+			return i1.equals(i2) ? 0 : 1; // TODO
+		});
+
+		// Populate the item set with option nodes
 		for (Path path : context.options.keySet()) {
 			Destination destination = context.options.get(path);
 
@@ -266,17 +276,11 @@ public class ConfigMapper {
 
 		// Until all items are at the top level (i.e. their paths only have one component)
 		while (!items.stream().allMatch((ConfigItem item) -> item.path.size() == 1)) {
-			// Sort the items so that the ones with longest paths are at the beginning
-			Collections.sort(items, (ConfigItem i1, ConfigItem i2) -> {
-				// Reverse the order by negating the comparison
-				return i2.path.size() - i1.path.size();
-			});
-
-			// Pick the first item from the list
-			ConfigItem item = items.get(0);
+			// Pick item with the longest path
+			ConfigItem item = items.first();
 			Set<ConfigItem> pickedItems = new HashSet<>(Collections.singleton(item));
 
-			// Find all items that belong in the same section and remove them from the list
+			// Find all items that belong in the same section and remove them from the set
 			for (ConfigItem otherItem : items) {
 				if (otherItem.path.prefix().equals(item.path.prefix())) {
 					pickedItems.add(otherItem);
@@ -292,7 +296,7 @@ public class ConfigMapper {
 				.collect(Collectors.toList())
 			);
 
-			// Insert the new node back into the item list
+			// Insert the new node back into the item set
 			items.add(new ConfigItem(sectionPath, section));
 		}
 
