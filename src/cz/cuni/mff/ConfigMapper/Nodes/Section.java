@@ -1,6 +1,7 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a section of the configuration file - an entity that groups similar options
@@ -61,23 +62,9 @@ public class Section extends ConfigNode {
 		}
 		
 		Section other = (Section) obj;
-		
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		
-		if (children == null) {
-			if (other.children != null) {
-				return false;
-			}
-		} else if (!children.equals(other.children)) {
-			return false;
-		}
-		return true;
+
+		return Objects.equals(this.name, other.name)
+			&& Objects.equals(this.children, other.children);
 	}
 
 	

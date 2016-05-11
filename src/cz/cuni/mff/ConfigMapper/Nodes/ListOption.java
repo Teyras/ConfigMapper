@@ -1,6 +1,7 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a list of values in the configuration file
@@ -45,23 +46,9 @@ public class ListOption extends Option {
 		if (getClass() != obj.getClass()) {
 			return false;
 		}
+
 		ListOption other = (ListOption) obj;
 		
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		
-		if (value == null) {
-			if (other.value != null) {
-				return false;
-			}
-		} else if (!value.equals(other.value)) {
-			return false;
-		}
-		return true;
+		return Objects.equals(this.name, other.name) && Objects.equals(this.value, other.value);
 	}
 }

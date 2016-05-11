@@ -1,5 +1,7 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
+import java.util.Objects;
+
 /**
  * Represents a scalar option value in the configuration file.
  * The value is kept in string form.
@@ -46,21 +48,7 @@ public class ScalarOption extends Option {
 		}
 		
 		ScalarOption other = (ScalarOption) obj;
-		if (name == null) {
-			if (other.name != null) {
-				return false;
-			}
-		} else if (!name.equals(other.name)) {
-			return false;
-		}
-		
-		if (value == null) {
-			if (other.value != null) {
-				return false;
-			}
-		} else if (!value.equals(other.value)) {
-			return false;
-		}
-		return true;
+
+		return Objects.equals(this.name, other.name) && Objects.equals(this.value, other.value);
 	}
 }
