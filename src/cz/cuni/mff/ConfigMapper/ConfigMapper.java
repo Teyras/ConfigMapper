@@ -112,17 +112,21 @@ public class ConfigMapper {
 					? fieldAnnotation.name()
 					: field.getName();
 
+				Path optionPath;
+
 				if (!fieldAnnotation.section().equals("")) {
-					context.options.put(
-						path.add(fieldAnnotation.section()).add(name),
-						new Destination(instance, field)
-					);
+					optionPath = path.add(fieldAnnotation.section()).add(name);
+					context.paths.add(path.add(fieldAnnotation.section()));
 				} else {
-					context.options.put(
-						path.add(name),
-						new Destination(instance, field)
-					);
+					optionPath = path.add(name);
 				}
+
+				context.paths.add(optionPath);
+
+				context.options.put(
+					optionPath,
+					new Destination(instance, field)
+				);
 			}
 
 			UndeclaredOptions undeclaredAnnotation = field.getAnnotation(UndeclaredOptions.class);
@@ -160,6 +164,8 @@ public class ConfigMapper {
 				String name = !sectionAnnotation.name().equals("")
 					? sectionAnnotation.name()
 					: field.getName();
+
+				context.paths.add(path.add(name));
 
 				field.setAccessible(true);
 				Object sectionInstance;
@@ -224,7 +230,13 @@ public class ConfigMapper {
 				return diff;
 			}
 
-			return i1.equals(i2) ? 0 : 1; // TODO
+			int pos1 = context.paths.indexOf(i1.path);
+			int pos2 = context.paths.indexOf(i2.path);
+
+			assert pos1 != -1;
+			assert pos2 != -1;
+
+			return pos1 - pos2;
 		});
 
 		// Populate the item set with option nodes
@@ -262,10 +274,19 @@ public class ConfigMapper {
 			for (Map.Entry<String, String> entry : context.undeclaredOptions.entrySet()) {
 				Path path = new Path(entry.getKey().split("#"));
 
-				items.add(new ConfigItem(
+				ConfigItem item = new ConfigItem(
 					path,
 					new ScalarOption(path.lastComponent(), entry.getValue())
-				));
+				);
+
+				// Insert all prefixes of the option path into the path list,
+				// so that undeclared options can be sorted in order of appearance
+				while (path.size() > 0) {
+					context.paths.add(path);
+					path = path.prefix();
+				}
+
+				items.add(item);
 			}
 		}
 
@@ -278,7 +299,7 @@ public class ConfigMapper {
 		while (!items.stream().allMatch((ConfigItem item) -> item.path.size() == 1)) {
 			// Pick item with the longest path
 			ConfigItem item = items.first();
-			Set<ConfigItem> pickedItems = new HashSet<>(Collections.singleton(item));
+			List<ConfigItem> pickedItems = new ArrayList<>();
 
 			// Find all items that belong in the same section and remove them from the set
 			for (ConfigItem otherItem : items) {
@@ -497,6 +518,11 @@ class Context {
 	 * Maps fully qualified option names to fields that should contain their values
 	 */
 	final Map<Path, Destination> options = new LinkedHashMap<>();
+
+	/**
+	 * Records the order of field paths in the mapped class
+	 */
+	final List<Path> paths = new ArrayList<>();
 
 	/**
 	 * A map where undeclared options should be stored
