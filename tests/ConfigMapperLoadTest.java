@@ -1,5 +1,6 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
+import cz.cuni.mff.ConfigMapper.Annotations.ConstantAlias;
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
@@ -184,5 +185,48 @@ public class ConfigMapperLoadTest {
 
 		assertEquals(object.sectionA.option, "value");
 		assertEquals(object.sectionB.option, "value2");
+	}
+
+	static class WithEnum {
+		enum OptionEnum {
+			ON,
+			OFF
+		}
+
+		@ConfigOption(section = "section")
+		@ConstantAlias(constant = "OFF", alias = "OOFF")
+		OptionEnum option1;
+
+		@ConfigOption(section = "section")
+		OptionEnum option2;
+	}
+
+	@Test
+	public void loadEnum() throws Exception {
+		Root config = new Root("", Collections.singletonList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option1", "OOFF"),
+				new ScalarOption("option2", "OFF")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithEnum object = mapper.load(config, WithEnum.class, LoadingMode.STRICT);
+
+		assertEquals(WithEnum.OptionEnum.OFF, object.option1);
+		assertEquals(WithEnum.OptionEnum.OFF, object.option2);
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadEnumUnknownConstant() throws Exception {
+		Root config = new Root("", Collections.singletonList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option1", "FOO"),
+				new ScalarOption("option2", "BAR")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithEnum object = mapper.load(config, WithEnum.class, LoadingMode.STRICT);
 	}
 }

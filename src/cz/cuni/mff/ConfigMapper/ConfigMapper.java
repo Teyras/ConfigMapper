@@ -2,6 +2,7 @@ package cz.cuni.mff.ConfigMapper;
 
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
+import cz.cuni.mff.ConfigMapper.Annotations.ConstantAlias;
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 
@@ -414,6 +415,27 @@ public class ConfigMapper {
 						|| value.equals("true");
 
 					field.set(instance, isTrue);
+				}
+
+				if (field.getType().isEnum()) {
+					for (ConstantAlias alias : field.getAnnotationsByType(ConstantAlias.class)) {
+						if (alias.alias().equals(value)) {
+							value = alias.constant();
+						}
+					}
+
+					for (Object constant : field.getType().getEnumConstants()) {
+						if (constant.toString().equals(value)) {
+							field.set(instance, constant);
+						}
+					}
+
+					if (field.get(instance) == null) {
+						throw new MappingException(String.format(
+							"Undefined constant %s",
+							value
+						));
+					}
 				}
 			}
 		} catch (IllegalArgumentException e) {
