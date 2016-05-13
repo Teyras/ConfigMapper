@@ -253,6 +253,20 @@ public class ConfigMapper {
 						path.lastComponent(),
 						(List<String>) destination.field.get(destination.instance)
 					);
+				} else if (destination.field.getType().isEnum()) {
+					String value = destination.field.get(destination.instance).toString();
+
+					for (ConstantAlias alias : destination.field.getAnnotationsByType(ConstantAlias.class)) {
+						if (alias.constant().equals(value)) {
+							value = alias.alias();
+							break;
+						}
+					}
+
+					node = new ScalarOption(
+						path.lastComponent(),
+						value
+					);
 				} else {
 					node = new ScalarOption(
 						path.lastComponent(),

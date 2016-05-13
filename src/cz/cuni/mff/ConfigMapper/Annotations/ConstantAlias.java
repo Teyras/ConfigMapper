@@ -1,5 +1,6 @@
 package cz.cuni.mff.ConfigMapper.Annotations;
 
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -9,6 +10,7 @@ import java.lang.annotation.RetentionPolicy;
  * This is meant to annotate the enumerable type field.
  */
 @Retention(RetentionPolicy.RUNTIME)
+@Repeatable(ConstantAliases.class)
 public @interface ConstantAlias {
 	/**
 	 * The name of the constant we want to alias (unqualified - "CONST", not "Enumerable.CONST")

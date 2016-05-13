@@ -1,4 +1,5 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
+import cz.cuni.mff.ConfigMapper.Annotations.ConstantAlias;
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.Nodes.ListOption;
@@ -87,6 +88,75 @@ public class ConfigMapperSaveTest {
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Collections.singletonList(
 				new ListOption("list", Arrays.asList("foo", "bar", "baz"))
+			))
+		));
+
+		assertEquals(expected, config);
+	}
+
+	static class WithEnum {
+		enum OptionEnum {
+			ON,
+			OFF
+		}
+
+		@ConfigOption(section = "section")
+		@ConstantAlias(constant = "OFF", alias = "OOFF")
+		OptionEnum option1;
+
+		@ConfigOption(section = "section")
+		OptionEnum option2;
+	}
+
+	@Test
+	public void testEnum() throws Exception {
+		WithEnum object = new WithEnum();
+		object.option1 = WithEnum.OptionEnum.OFF;
+		object.option2 = WithEnum.OptionEnum.ON;
+
+		ConfigMapper mapper = new ConfigMapper();
+		Root config = mapper.save(object);
+
+		Root expected = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option1", "OOFF"),
+				new ScalarOption("option2", "ON")
+			))
+		));
+
+		assertEquals(expected, config);
+	}
+
+	static class WithChainedEnum {
+		enum OptionEnum {
+			ON,
+			OFF
+		}
+
+		@ConfigOption(section = "section")
+		@ConstantAlias(constant = "OFF", alias = "ON")
+		@ConstantAlias(constant = "ON", alias = "OFF")
+		OptionEnum option1;
+
+		@ConfigOption(section = "section")
+		@ConstantAlias(constant = "OFF", alias = "ON")
+		@ConstantAlias(constant = "ON", alias = "OFF")
+		OptionEnum option2;
+	}
+
+	@Test
+	public void testChainedEnum() throws Exception {
+		WithChainedEnum object = new WithChainedEnum();
+		object.option1 = WithChainedEnum.OptionEnum.ON;
+		object.option2 = WithChainedEnum.OptionEnum.OFF;
+
+		ConfigMapper mapper = new ConfigMapper();
+		Root config = mapper.save(object);
+
+		Root expected = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option1", "OFF"),
+				new ScalarOption("option2", "ON")
 			))
 		));
 
