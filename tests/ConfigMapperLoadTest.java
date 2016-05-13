@@ -229,4 +229,37 @@ public class ConfigMapperLoadTest {
 		ConfigMapper mapper = new ConfigMapper();
 		WithEnum object = mapper.load(config, WithEnum.class, LoadingMode.STRICT);
 	}
+
+	static class WithChainedEnum {
+		enum OptionEnum {
+			ON,
+			OFF
+		}
+
+		@ConfigOption(section = "section")
+		@ConstantAlias(constant = "OFF", alias = "ON")
+		@ConstantAlias(constant = "ON", alias = "OFF")
+		OptionEnum option1;
+
+		@ConfigOption(section = "section")
+		@ConstantAlias(constant = "OFF", alias = "ON")
+		@ConstantAlias(constant = "ON", alias = "OFF")
+		OptionEnum option2;
+	}
+
+	@Test
+	public void testChainedEnum() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option1", "OFF"),
+				new ScalarOption("option2", "ON")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithChainedEnum object = mapper.load(config, WithChainedEnum.class, LoadingMode.STRICT);
+
+		assertEquals(WithChainedEnum.OptionEnum.ON, object.option1);
+		assertEquals(WithChainedEnum.OptionEnum.OFF, object.option2);
+	}
 }

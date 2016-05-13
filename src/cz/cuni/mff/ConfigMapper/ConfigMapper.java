@@ -435,6 +435,7 @@ public class ConfigMapper {
 					for (ConstantAlias alias : field.getAnnotationsByType(ConstantAlias.class)) {
 						if (alias.alias().equals(value)) {
 							value = alias.constant();
+							break;
 						}
 					}
 
