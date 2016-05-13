@@ -387,7 +387,7 @@ public class ConfigMapper {
 
 		try {
 			if (option instanceof ListOption) {
-				field.set(instance, ((ListOption) option).getValue());
+				field.set(instance, new ArrayList<>(((ListOption) option).getValue()));
 			} else if (option instanceof ScalarOption) {
 				String value = ((ScalarOption) option).getValue();
 

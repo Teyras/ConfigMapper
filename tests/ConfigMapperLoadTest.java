@@ -53,6 +53,37 @@ public class ConfigMapperLoadTest {
 		assertEquals(true, object.optionBool);
 	}
 
+	static class WithList {
+		@ConfigOption(section = "section")
+		List<String> list;
+	}
+
+	@Test
+	public void loadList() throws Exception {
+		List<String> listValue = Arrays.asList(
+			"foo",
+			"bar",
+			"baz"
+		);
+
+		Root config = new Root("", Collections.singletonList(
+			new Section("section", Collections.singletonList(
+				new ListOption("list", listValue)
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithList object = mapper.load(config, WithList.class, LoadingMode.STRICT);
+
+		assertEquals(listValue, object.list);
+
+		// Make sure that the list can be modified
+		object.list.add("boo");
+		object.list.remove(0);
+
+		assertEquals(Arrays.asList("bar", "baz", "boo"), object.list);
+	}
+
 	@Test(expected = MappingException.class)
 	public void loadUndeclaredThrows() throws Exception {
 		// Set up testing config structure
