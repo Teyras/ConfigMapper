@@ -1,6 +1,7 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
+import cz.cuni.mff.ConfigMapper.Nodes.ListOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
@@ -62,6 +63,30 @@ public class ConfigMapperSaveTest {
 			)),
 			new Section("section2", Collections.singletonList(
 				new ScalarOption("baz", "gah")
+			))
+		));
+
+		assertEquals(expected, config);
+	}
+
+	static class WithList {
+		@ConfigOption(section = "section")
+		List<String> list;
+	}
+
+	@Test
+	public void testList() throws Exception {
+		List<String> list = new ArrayList<>(Arrays.asList("foo", "bar", "baz"));
+
+		WithList object = new WithList();
+		object.list = list;
+
+		ConfigMapper mapper = new ConfigMapper();
+		Root config = mapper.save(object);
+
+		Root expected = new Root("", Arrays.asList(
+			new Section("section", Collections.singletonList(
+				new ListOption("list", Arrays.asList("foo", "bar", "baz"))
 			))
 		));
 
