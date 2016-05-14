@@ -30,6 +30,11 @@ public class Section extends ConfigNode {
 		return children;
 	}
 
+	public boolean addChild(ConfigNode newChild){
+        return children.add(newChild);
+    }
+
+
 	/**
 	 * Does the section only contain values?
 	 * @return true if the section only contains values (i.e. there are no subsections), false otherwise

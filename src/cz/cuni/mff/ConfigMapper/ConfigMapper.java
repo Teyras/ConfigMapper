@@ -248,7 +248,7 @@ public class ConfigMapper {
 				if (destination.field.get(destination.instance) instanceof List) {
 					node = new ListOption(
 						path.lastComponent(),
-						(List<String>) destination.field.get(destination.instance)
+						(List<String>) destination.field.get(destination.instance), ','
 					);
 				} else if (destination.field.getType().isEnum()) {
 					String value = destination.field.get(destination.instance).toString();

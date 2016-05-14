@@ -13,13 +13,19 @@ public class ListOption extends Option {
 	 */
 	private List<String> value;
 
+    /**
+     * The original separator character
+     */
+	private char separator;
+
 	/**
 	 * @param name the name of the option
 	 * @param value the value of the option
 	 */
-	public ListOption(String name, List<String> value) {
+	public ListOption(String name, List<String> value, char separator) {
 		super(name);
 		this.value = value;
+        this.separator = separator;
 	}
 
 	/**
@@ -29,6 +35,8 @@ public class ListOption extends Option {
 	public List<String> getValue() {
 		return value;
 	}
+
+    public char getSeparator() {return separator;}
 
 	/**
 	 * Check if both nodes contain the same lists
@@ -48,7 +56,10 @@ public class ListOption extends Option {
 		}
 
 		ListOption other = (ListOption) obj;
-		
-		return Objects.equals(this.name, other.name) && Objects.equals(this.value, other.value);
+
+
+		return Objects.equals(this.name, other.name)
+                && Objects.equals(this.value, other.value)
+                && this.separator == other.getSeparator();
 	}
 }
