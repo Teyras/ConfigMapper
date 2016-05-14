@@ -23,7 +23,7 @@ public class IniAdapterTest {
                     new ScalarOption("option2", "bar")
             )),
             new Section("sectionB", Arrays.asList(
-                    new ListOption("option3", Arrays.asList("baz", "baz", "baz"))
+                    new ListOption("option3", Arrays.asList("baz", "baz", "baz"),':')
             ))
     ));
 
@@ -35,7 +35,16 @@ public class IniAdapterTest {
             "option3=baz:baz:baz"
     )).getBytes();
 
-    @Ignore
+    private static byte[] trickyFileContent = (String.join("\n",
+            "[sectionA]",
+            "option1=f\\;oo ; comment",
+            ";only comment on this line ; wow",
+            " \\ opti\\ on2\\ \\  =bar",
+            "[sectionB]",
+            "option3=baz:baz:baz",
+            "option4=baz, baz : baz"
+    )).getBytes();
+
 	@Test
 	public void readBasic() throws Exception {
 		byte[] input = simpleFileContent;
@@ -47,6 +56,16 @@ public class IniAdapterTest {
 
 		assertEquals(expectedConfig, config);
 	}
+
+    @Test
+    public void extractSectionNameTest() throws Exception {
+        IniAdapter adapter = new IniAdapter();
+
+        assertEquals("Sekce 1",adapter.extractSectionNameTest("[Sekce 1]"));
+        assertEquals("Sekce 1  ",adapter.extractSectionNameTest("[ Sekce 1  ]"));
+        assertEquals("$Sekce::podsekce",adapter.extractSectionNameTest("[$Sekce::podsekce]"));
+        assertEquals("$Sekce::podsekce~",adapter.extractSectionNameTest("[  ~$Sekce::podsekce~]"));
+    }
 
     @Test
 	public void writeBasic() throws Exception {
