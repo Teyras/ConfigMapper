@@ -1,7 +1,4 @@
-import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
-import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
-import cz.cuni.mff.ConfigMapper.Annotations.ConstantAlias;
-import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
+import cz.cuni.mff.ConfigMapper.Annotations.*;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import cz.cuni.mff.ConfigMapper.MappingException;
@@ -261,5 +258,49 @@ public class ConfigMapperLoadTest {
 
 		assertEquals(WithChainedEnum.OptionEnum.ON, object.option1);
 		assertEquals(WithChainedEnum.OptionEnum.OFF, object.option2);
+	}
+
+	static class WithIntegralConstraint {
+		@ConfigOption(section = "section")
+		@IntegralConstraint(min = -10, max = 10)
+		int option;
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadIntegralConstraintLow() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option", "-100")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithIntegralConstraint object = mapper.load(config, WithIntegralConstraint.class, LoadingMode.STRICT);
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadIntegralConstraintHigh() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option", "100")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithIntegralConstraint object = mapper.load(config, WithIntegralConstraint.class, LoadingMode.STRICT);
+	}
+
+	@Test()
+	public void loadIntegralConstraintCorrect() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option", "2")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithIntegralConstraint object = mapper.load(config, WithIntegralConstraint.class, LoadingMode.STRICT);
+
+		assertEquals(2, object.option);
 	}
 }

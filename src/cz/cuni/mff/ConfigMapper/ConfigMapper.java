@@ -1,9 +1,6 @@
 package cz.cuni.mff.ConfigMapper;
 
-import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
-import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
-import cz.cuni.mff.ConfigMapper.Annotations.ConstantAlias;
-import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
+import cz.cuni.mff.ConfigMapper.Annotations.*;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 
 import java.lang.reflect.Constructor;
@@ -406,6 +403,9 @@ public class ConfigMapper {
 			} else if (option instanceof ScalarOption) {
 				String value = ((ScalarOption) option).getValue();
 
+				checkIntegralConstraint(field, value);
+				checkDecimalConstraint(field, value);
+
 				if (field.getType() == String.class) {
 					field.set(instance, value);
 				}
@@ -460,6 +460,62 @@ public class ConfigMapper {
 		}
 
 		field.setAccessible(fieldAccessible);
+	}
+
+	/**
+	 * If a {@link IntegralConstraint} annotation is present, check whether the option value satisfies the constraint
+	 * @param field The field to check
+	 * @param valueString A string representation of the option value
+	 * @throws MappingException When the constraint is not satisfied or when the annotation is on a wrong type of field
+	 */
+	private void checkIntegralConstraint(Field field, String valueString) throws MappingException {
+		IntegralConstraint constraint = field.getAnnotation(IntegralConstraint.class);
+
+		if (constraint == null) {
+			return;
+		}
+
+		if (!(field.getType() == Integer.class || field.getType() == int.class)
+			|| field.getType() == Long.class || field.getType() == long.class
+			|| field.getType() == Float.class || field.getType() == float.class
+			|| field.getType() == Double.class || field.getType() == double.class) {
+			throw new MappingException(String.format(
+				"@IntegralConstraint is not supported on field %s with type %s",
+				field.getName(),
+				field.getType().getName()
+			));
+		}
+
+		long value = Long.parseLong(valueString);
+
+		if (value > constraint.max()) {
+			throw new MappingException(String.format(
+				"Value %d is higher than the maximum allowed value (%d) in field %s",
+				value,
+				constraint.max(),
+				field.getName()
+			));
+		}
+
+		if (value < constraint.min()) {
+			throw new MappingException(String.format(
+				"Value %d is lower than the minimum allowed value (%d) in field %s",
+				value,
+				constraint.min(),
+				field.getName()
+			));
+		}
+
+		if (constraint.unsigned() && value < 0) {
+			throw new MappingException(String.format(
+				"Value of field %s is negative, but the field is unsigned",
+				field.getName()
+			));
+		}
+	}
+
+	private void checkDecimalConstraint(Field field, String value) throws MappingException {
+
 	}
 }
 
