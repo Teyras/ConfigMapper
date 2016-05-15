@@ -8,7 +8,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 
 /**
  * Maps {@link ConfigNode} structures to objects
@@ -285,7 +284,7 @@ public class ConfigMapper {
 		// Insert undeclared options into the item list
 		if (context.undeclaredOptions != null) {
 			for (Map.Entry<String, String> entry : context.undeclaredOptions.entrySet()) {
-				Path path = new Path(entry.getKey().split("#"));
+				Path path = new Path(entry.getKey().split(Path.COMPONENT_SEPARATOR));
 
 				ConfigItem item = new ConfigItem(
 					path,
@@ -573,6 +572,11 @@ public class ConfigMapper {
  */
 class Path {
 	/**
+	 * The string used to separate path components in text representations of the path
+	 */
+	static final String COMPONENT_SEPARATOR = "#";
+
+	/**
 	 * The components of the option name.
 	 */
 	private final List<String> components;
@@ -612,7 +616,7 @@ class Path {
 	}
 
 	public String toString() {
-		return String.join("#", components);
+		return String.join(COMPONENT_SEPARATOR, components);
 	}
 
 	int size() {
