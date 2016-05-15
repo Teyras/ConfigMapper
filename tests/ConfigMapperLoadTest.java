@@ -303,4 +303,48 @@ public class ConfigMapperLoadTest {
 
 		assertEquals(2, object.option);
 	}
+
+	static class WithDecimalConstraint {
+		@ConfigOption(section = "section")
+		@DecimalConstraint(min = -10.333, max = 10.333)
+		double option;
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadDecimalConstraintLow() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option", "-100")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithDecimalConstraint object = mapper.load(config, WithDecimalConstraint.class, LoadingMode.STRICT);
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadDecimalConstraintHigh() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option", "100")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithDecimalConstraint object = mapper.load(config, WithDecimalConstraint.class, LoadingMode.STRICT);
+	}
+
+	@Test()
+	public void loadDecimalConstraintCorrect() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option", "10.11")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		WithDecimalConstraint object = mapper.load(config, WithDecimalConstraint.class, LoadingMode.STRICT);
+
+		assertEquals(10.11, object.option, 0.001);
+	}
 }

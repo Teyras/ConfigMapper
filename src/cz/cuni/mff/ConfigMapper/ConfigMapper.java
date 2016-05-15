@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 /**
  * Maps {@link ConfigNode} structures to objects
@@ -475,10 +476,7 @@ public class ConfigMapper {
 			return;
 		}
 
-		if (!(field.getType() == Integer.class || field.getType() == int.class)
-			|| field.getType() == Long.class || field.getType() == long.class
-			|| field.getType() == Float.class || field.getType() == float.class
-			|| field.getType() == Double.class || field.getType() == double.class) {
+		if (!isNumericField(field)) {
 			throw new MappingException(String.format(
 				"@IntegralConstraint is not supported on field %s with type %s",
 				field.getName(),
@@ -514,8 +512,59 @@ public class ConfigMapper {
 		}
 	}
 
-	private void checkDecimalConstraint(Field field, String value) throws MappingException {
+	private void checkDecimalConstraint(Field field, String valueString) throws MappingException {
+		DecimalConstraint constraint = field.getAnnotation(DecimalConstraint.class);
 
+		if (constraint == null) {
+			return;
+		}
+
+		if (!isNumericField(field)) {
+			throw new MappingException(String.format(
+				"@DecimalConstraint is not supported on field %s with type %s",
+				field.getName(),
+				field.getType().getName()
+			));
+		}
+
+		double value = Double.parseDouble(valueString);
+
+		if (value > constraint.max()) {
+			throw new MappingException(String.format(
+				"Value %f is higher than the maximum allowed value (%f) in field %s",
+				value,
+				constraint.max(),
+				field.getName()
+			));
+		}
+
+		if (value < constraint.min()) {
+			throw new MappingException(String.format(
+				"Value %f is lower than the minimum allowed value (%f) in field %s",
+				value,
+				constraint.min(),
+				field.getName()
+			));
+		}
+
+		if (constraint.unsigned() && value < 0) {
+			throw new MappingException(String.format(
+				"Value of field %s is negative, but the field is unsigned",
+				field.getName()
+			));
+		}
+	}
+
+	/**
+	 * Check if a field's type is numeric
+	 * @param field the field to be checked
+	 * @return true if the field is numeric, false otherwise
+	 */
+	private boolean isNumericField(Field field) {
+		return field.getType() == Integer.class || field.getType() == int.class
+			|| field.getType() == Long.class || field.getType() == long.class
+			|| field.getType() == Float.class || field.getType() == float.class
+			|| field.getType() == Double.class || field.getType() == double.class;
 	}
 }
 
