@@ -1,12 +1,15 @@
 package cz.cuni.mff.ConfigMapper.Annotations;
 
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * Marks a field that maps to a section in a configuration file
  */
 @Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
 public @interface ConfigSection {
 	/**
 	 * Textual description of the kind of options the section contains
