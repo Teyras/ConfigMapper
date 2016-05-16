@@ -265,9 +265,14 @@ public class ConfigMapper {
 						value
 					);
 				} else {
+					String value = destination.field.get(destination.instance).toString();
+
+					checkIntegralConstraint(destination.field, value);
+					checkDecimalConstraint(destination.field, value);
+
 					node = new ScalarOption(
 						path.lastComponent(),
-						destination.field.get(destination.instance).toString()
+						value
 					);
 				}
 			} catch (IllegalAccessException e) {
