@@ -67,6 +67,19 @@ public class ConfigMapperLoadBasicTest {
 		BasicMappedClass object = mapper.load(config, BasicMappedClass.class, LoadingMode.STRICT);
 	}
 
+	@Test(expected = MappingException.class)
+	public void missingOptionThrows() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section1", Arrays.asList(
+				new ScalarOption("optionString", "foo"),
+				new ScalarOption("optionInt", "110")
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		BasicMappedClass object = mapper.load(config, BasicMappedClass.class, LoadingMode.STRICT);
+	}
+
 	static class StructuredSectionMappedClass {
 		static class FooSection {
 			@ConfigOption

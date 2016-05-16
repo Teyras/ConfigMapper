@@ -52,6 +52,19 @@ public class ConfigMapper {
 			}
 		}
 
+		// Check if all required fields have been set
+		for (Map.Entry<Path, Destination> entry : context.options.entrySet()) {
+			Destination destination = entry.getValue();
+			Path path = entry.getKey();
+
+			if (!destination.isSet) {
+				throw new MappingException(String.format(
+					"Required option %s is missing",
+					path.toString()
+				));
+			}
+		}
+
 		return instance;
 	}
 
@@ -404,7 +417,7 @@ public class ConfigMapper {
 
 		try {
 			if (option instanceof ListOption) {
-				field.set(instance, new ArrayList<>(((ListOption) option).getValue()));
+				destination.set(new ArrayList<>(((ListOption) option).getValue()));
 			} else if (option instanceof ScalarOption) {
 				String value = ((ScalarOption) option).getValue();
 
@@ -412,19 +425,19 @@ public class ConfigMapper {
 				checkDecimalConstraint(field, value);
 
 				if (field.getType() == String.class) {
-					field.set(instance, value);
+					destination.set(value);
 				}
 
 				if (field.getType() == int.class || field.getType() == Integer.class) {
-					field.set(instance, Integer.parseInt(value));
+					destination.set(Integer.parseInt(value));
 				}
 
 				if (field.getType() == float.class || field.getType() == Float.class) {
-					field.set(instance, Float.parseFloat(value));
+					destination.set(Float.parseFloat(value));
 				}
 
 				if (field.getType() == double.class || field.getType() == Double.class) {
-					field.set(instance, Double.parseDouble(value));
+					destination.set(Double.parseDouble(value));
 				}
 
 				if (field.getType() == boolean.class || field.getType() == Boolean.class) {
@@ -433,7 +446,7 @@ public class ConfigMapper {
 						|| value.equals("y")
 						|| value.equals("true");
 
-					field.set(instance, isTrue);
+					destination.set(isTrue);
 				}
 
 				if (field.getType().isEnum()) {
@@ -446,11 +459,12 @@ public class ConfigMapper {
 
 					for (Object constant : field.getType().getEnumConstants()) {
 						if (constant.toString().equals(value)) {
-							field.set(instance, constant);
+							destination.set(constant);
+							break;
 						}
 					}
 
-					if (field.get(instance) == null) {
+					if (!destination.isSet) {
 						throw new MappingException(String.format(
 							"Undefined constant %s",
 							value
@@ -655,9 +669,24 @@ class Destination {
 	 */
 	final Field field;
 
+	/**
+	 * Has the field been set yet?
+	 */
+	boolean isSet;
+
 	Destination(Object instance, Field field) {
 		this.instance = instance;
 		this.field = field;
+	}
+
+	/**
+	 * Set the field's value
+	 * @param value value to set
+	 * @throws IllegalAccessException
+	 */
+	public void set(Object value) throws IllegalAccessException {
+		field.set(instance, value);
+		isSet = true;
 	}
 }
 
