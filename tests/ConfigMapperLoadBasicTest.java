@@ -27,18 +27,14 @@ public class ConfigMapperLoadBasicTest {
 	@Test
 	public void loadBasic() throws Exception {
 		// Set up testing config structure
-		Section section1 = new Section("section1", Arrays.asList(
-			new ScalarOption("optionString", "value"),
-			new ScalarOption("optionInt", "10")
-		));
-
-		Section section2 = new Section("section2", Arrays.asList(
-			new ScalarOption("optionBool", "on")
-		));
-
 		Root config = new Root("config.ini", Arrays.asList(
-			section1,
-			section2
+			new Section("section1", Arrays.asList(
+				new ScalarOption("optionString", "value"),
+				new ScalarOption("optionInt", "10")
+			)),
+			new Section("section2", Arrays.asList(
+				new ScalarOption("optionBool", "on")
+			))
 		));
 
 		// Instantiate the mapper
@@ -54,12 +50,10 @@ public class ConfigMapperLoadBasicTest {
 	@Test(expected = MappingException.class)
 	public void loadUndeclaredThrows() throws Exception {
 		// Set up testing config structure
-		Section section1 = new Section("section1", Arrays.asList(
-			new ScalarOption("optionFooBarBaz", "value")
-		));
-
 		Root config = new Root("config.ini", Arrays.asList(
-			section1
+			new Section("section1", Arrays.asList(
+				new ScalarOption("optionFooBarBaz", "value")
+			))
 		));
 
 		// Instantiate the mapper
@@ -122,7 +116,7 @@ public class ConfigMapperLoadBasicTest {
 
 		ConfigMapper mapper = new ConfigMapper();
 		OptionalOptionMappedClass object = mapper.load(config, OptionalOptionMappedClass.class, LoadingMode.STRICT);
-		
+
 		assertEquals(object.option, 0);
 	}
 }
