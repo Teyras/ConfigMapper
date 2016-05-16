@@ -57,7 +57,7 @@ public class ConfigMapper {
 			Destination destination = entry.getValue();
 			Path path = entry.getKey();
 
-			if (!destination.isSet) {
+			if (!destination.isOptional && !destination.isSet) {
 				throw new MappingException(String.format(
 					"Required option %s is missing",
 					path.toString()
@@ -136,7 +136,7 @@ public class ConfigMapper {
 
 				context.options.put(
 					optionPath,
-					new Destination(instance, field)
+					new Destination(instance, field, fieldAnnotation.optional())
 				);
 			}
 
@@ -674,9 +674,15 @@ class Destination {
 	 */
 	boolean isSet;
 
-	Destination(Object instance, Field field) {
+	/**
+	 * Is the field (or the corresponding option) optional?
+	 */
+	boolean isOptional;
+
+	Destination(Object instance, Field field, boolean isOptional) {
 		this.instance = instance;
 		this.field = field;
+		this.isOptional = isOptional;
 	}
 
 	/**

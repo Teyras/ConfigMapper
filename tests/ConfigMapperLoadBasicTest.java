@@ -111,4 +111,18 @@ public class ConfigMapperLoadBasicTest {
 		assertEquals(object.sectionB.option, "value2");
 	}
 
+	static class OptionalOptionMappedClass {
+		@ConfigOption(section = "section", optional = true)
+		int option;
+	}
+
+	@Test
+	public void loadOptionalOption() throws Exception {
+		Root config = new Root("", Collections.emptyList());
+
+		ConfigMapper mapper = new ConfigMapper();
+		OptionalOptionMappedClass object = mapper.load(config, OptionalOptionMappedClass.class, LoadingMode.STRICT);
+		
+		assertEquals(object.option, 0);
+	}
 }

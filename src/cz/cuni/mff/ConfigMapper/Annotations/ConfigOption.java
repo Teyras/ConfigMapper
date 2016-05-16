@@ -25,4 +25,10 @@ public @interface ConfigOption {
 	 * The name of the configuration option. If no name is specified, the name of the annotated variable is used
 	 */
 	String name() default "";
+
+	/**
+	 * True if the option doesn't have to be present in the configuration file.
+	 * If so, the default value of the corresponding field's type is used (e.g. null or 0)
+	 */
+	boolean optional() default false;
 }
