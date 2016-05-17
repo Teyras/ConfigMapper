@@ -3,6 +3,7 @@ import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import cz.cuni.mff.ConfigMapper.MappingException;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
+import cz.cuni.mff.ConfigMapper.ParsedBoolean;
 import org.junit.Test;
 
 import java.util.*;
@@ -33,7 +34,7 @@ public class ConfigMapperLoadBasicTest {
 				new ScalarOption("optionInt", "10")
 			)),
 			new Section("section2", Arrays.asList(
-				new ScalarOption("optionBool", "on")
+				new ScalarOption("optionBool", "on", ParsedBoolean.TRUE)
 			))
 		));
 
@@ -72,6 +73,23 @@ public class ConfigMapperLoadBasicTest {
 
 		ConfigMapper mapper = new ConfigMapper();
 		BasicMappedClass object = mapper.load(config, BasicMappedClass.class, LoadingMode.STRICT);
+	}
+
+	static class BooleanOptionMappedClass {
+		@ConfigOption(section = "section")
+		boolean option;
+	}
+
+	@Test(expected = MappingException.class)
+	public void nonBooleanInBooleanFieldThrows() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Arrays.asList(
+				new ScalarOption("option", "foo", ParsedBoolean.NOT_BOOLEAN)
+			))
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		BooleanOptionMappedClass object = mapper.load(config, BooleanOptionMappedClass.class, LoadingMode.STRICT);
 	}
 
 	static class StructuredSectionMappedClass {

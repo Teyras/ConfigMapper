@@ -476,12 +476,15 @@ public class ConfigMapper {
 				}
 
 				if (field.getType() == boolean.class || field.getType() == Boolean.class) {
-					boolean isTrue = value.equals("on")
-						|| value.equals("yes")
-						|| value.equals("y")
-						|| value.equals("true");
+					ParsedBoolean booleanValue = ((ScalarOption) option).getBooleanValue();
+					if (booleanValue == ParsedBoolean.NOT_BOOLEAN) {
+						throw new MappingException(String.format(
+							"Option %s requires a boolean value",
+							path
+						));
+					}
 
-					destination.set(isTrue);
+					destination.set(booleanValue == ParsedBoolean.TRUE);
 				}
 
 				if (field.getType().isEnum()) {

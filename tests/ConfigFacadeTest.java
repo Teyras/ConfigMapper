@@ -42,7 +42,7 @@ public class ConfigFacadeTest {
 			"optionString = value",
 			"optionInt = 234",
 			"[section2]",
-			"optionBool = true"
+			"optionBool = on"
 		);
 
 		ConfigFacade facade = new ConfigFacade(new IniAdapter());
@@ -71,7 +71,7 @@ public class ConfigFacadeTest {
 			"optionString = value",
 			"[section2]",
 			"optionInt = 234",
-			"optionBool = true"
+			"optionBool = on"
 		);
 
 		ConfigFacade facadeRelaxed = new ConfigFacade(new IniAdapter());
