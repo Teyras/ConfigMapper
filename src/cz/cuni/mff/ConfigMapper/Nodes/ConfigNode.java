@@ -1,5 +1,7 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
+import java.util.Objects;
+
 /**
  * A representation of an element in the configuration file.
  * Its purpose is to hide the specifics of the configuration file format (e.g. INI)
@@ -52,5 +54,14 @@ public abstract class ConfigNode {
 	 * @return true if the nodes are equal, false otherwise
 	 */
 	@Override
-	public abstract boolean equals(Object other);
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+
+		return other != null
+			&& getClass() == other.getClass()
+			&& Objects.equals(this.description, ((ConfigNode) other).description)
+			&& Objects.equals(this.name, ((ConfigNode) other).name);
+	}
 }

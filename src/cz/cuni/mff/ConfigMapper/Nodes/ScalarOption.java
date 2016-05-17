@@ -74,15 +74,13 @@ public class ScalarOption extends Option {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+
+		if (!super.equals(obj)) {
 			return false;
 		}
 		
 		ScalarOption other = (ScalarOption) obj;
 
-		return Objects.equals(this.name, other.name) && Objects.equals(this.value, other.value);
+		return Objects.equals(this.value, other.value);
 	}
 }

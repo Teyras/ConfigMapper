@@ -78,18 +78,14 @@ public class ListOption extends Option {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
-			return false;
-		}
-		if (getClass() != obj.getClass()) {
+
+		if (!super.equals(obj)) {
 			return false;
 		}
 
 		ListOption other = (ListOption) obj;
 
-
-		return Objects.equals(this.name, other.name)
-			&& Objects.equals(this.value, other.value)
-			&& this.separator.equals(other.getSeparator());
+		return Objects.equals(this.value, other.value)
+			&& Objects.equals(this.separator, other.separator);
 	}
 }
