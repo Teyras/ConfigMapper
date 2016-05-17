@@ -1,13 +1,11 @@
 import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
-import cz.cuni.mff.ConfigMapper.parsedBoolean;
-import org.junit.Ignore;
+import cz.cuni.mff.ConfigMapper.ParsedBoolean;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -84,14 +82,14 @@ public class IniAdapterTest {
 
         Root expectedConfig = new Root("", Arrays.asList(
                 new Section("sectionA", Arrays.asList(
-                        new ScalarOption("optionTrue1", "1", parsedBoolean.TRUE),
-                        new ScalarOption("optionTrue2", "t", parsedBoolean.TRUE),
-                        new ScalarOption("optionTrue3", "enabled", parsedBoolean.TRUE),
-                        new ScalarOption("optionFalse1", "0", parsedBoolean.FALSE),
-                        new ScalarOption("optionFalse2", "f", parsedBoolean.FALSE),
-                        new ScalarOption("optionFalse3", "disabled", parsedBoolean.FALSE),
-                        new ScalarOption("optionNotBoolean1", "true", parsedBoolean.NOT_BOOLEAN),
-                        new ScalarOption("optionNotBoolean2", "notBoolean", parsedBoolean.NOT_BOOLEAN)
+                        new ScalarOption("optionTrue1", "1", ParsedBoolean.TRUE),
+                        new ScalarOption("optionTrue2", "t", ParsedBoolean.TRUE),
+                        new ScalarOption("optionTrue3", "enabled", ParsedBoolean.TRUE),
+                        new ScalarOption("optionFalse1", "0", ParsedBoolean.FALSE),
+                        new ScalarOption("optionFalse2", "f", ParsedBoolean.FALSE),
+                        new ScalarOption("optionFalse3", "disabled", ParsedBoolean.FALSE),
+                        new ScalarOption("optionNotBoolean1", "true", ParsedBoolean.NOT_BOOLEAN),
+                        new ScalarOption("optionNotBoolean2", "notBoolean", ParsedBoolean.NOT_BOOLEAN)
                 ))));
 
         IniAdapter adapter = new IniAdapter();

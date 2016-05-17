@@ -2,7 +2,7 @@ package cz.cuni.mff.ConfigMapper.Adapters;
 
 import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
-import cz.cuni.mff.ConfigMapper.parsedBoolean;
+import cz.cuni.mff.ConfigMapper.ParsedBoolean;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -142,11 +142,11 @@ public class IniAdapter implements ConfigAdapter {
 
                         // if the option can be interpreted as a boolean, set the boolean value
                         if (TRUE_REPRESENTATION.contains(value)) {
-                            newOption.setBooleanValue(parsedBoolean.TRUE);
+                            newOption.setBooleanValue(ParsedBoolean.TRUE);
                         } else if (FALSE_REPRESENTATION.contains(value)) {
-                            newOption.setBooleanValue(parsedBoolean.FALSE);
+                            newOption.setBooleanValue(ParsedBoolean.FALSE);
                         } else {
-                            newOption.setBooleanValue(parsedBoolean.NOT_BOOLEAN);
+                            newOption.setBooleanValue(ParsedBoolean.NOT_BOOLEAN);
                         }
 
                         currentSection.addChild(newOption);

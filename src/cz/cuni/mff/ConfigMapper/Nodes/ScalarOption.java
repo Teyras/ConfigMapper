@@ -1,6 +1,6 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
-import cz.cuni.mff.ConfigMapper.parsedBoolean;
+import cz.cuni.mff.ConfigMapper.ParsedBoolean;
 
 import java.util.Objects;
 
@@ -15,7 +15,10 @@ public class ScalarOption extends Option {
 	 */
 	private String value;
 
-    private parsedBoolean booleanValue;
+	/**
+	 * The boolean value of the option, if applicable
+	 */
+	private ParsedBoolean booleanValue = ParsedBoolean.NOT_BOOLEAN;
 
 	/**
 	 * @param name the name of the option
@@ -26,10 +29,15 @@ public class ScalarOption extends Option {
 		this.value = value;
 	}
 
-    public ScalarOption(String name, String value, parsedBoolean booleanValue) {
-        this(name,value);
-        this.booleanValue = booleanValue;
-    }
+	/**
+	 * @param name name of the option
+	 * @param value value of the option
+	 * @param booleanValue boolean value of the option
+	 */
+	public ScalarOption(String name, String value, ParsedBoolean booleanValue) {
+		this(name,value);
+		this.booleanValue = booleanValue;
+	}
 
 	/**
 	 * Get the value of the option
@@ -39,18 +47,22 @@ public class ScalarOption extends Option {
 		return value;
 	}
 
-    /**
-     * Get a boolean value of the option depending on the parsing context
-     * @return TRUE if true, FALSE if false, NOT_BOOLEAN if the option could not be
-     * mapped on a boolean value
-     */
-    public parsedBoolean getBooleanValue() {
-        return booleanValue;
-    }
+	/**
+	 * Get a boolean value of the option depending on the parsing context
+	 * @return TRUE if true, FALSE if false, NOT_BOOLEAN if the option could not be
+	 * mapped on a boolean value
+	 */
+	public ParsedBoolean getBooleanValue() {
+		return booleanValue;
+	}
 
-    public void setBooleanValue(parsedBoolean booleanValue) {
-        this.booleanValue = booleanValue;
-    }
+	/**
+	 * Set the boolean value of the option
+	 * @param booleanValue the boolean value of the option
+	 */
+	public void setBooleanValue(ParsedBoolean booleanValue) {
+		this.booleanValue = booleanValue;
+	}
 
 	/**
 	 * Check if both objects contain the same options
