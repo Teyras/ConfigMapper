@@ -211,6 +211,11 @@ public class ConfigMapper {
 				Path sectionPath = path.add(name);
 				context.paths.add(sectionPath);
 
+				context.sections.put(
+					sectionPath,
+					new Destination(instance, field, sectionAnnotation.optional())
+				);
+
 				field.setAccessible(true);
 				Object sectionInstance;
 
@@ -229,11 +234,6 @@ public class ConfigMapper {
 					assert false;
 					return;
 				}
-
-				context.sections.put(
-					sectionPath,
-					new Destination(instance, field, sectionAnnotation.optional())
-				);
 
 				extractOptions(sectionCls, sectionInstance, context, sectionPath, true);
 			}
@@ -255,6 +255,22 @@ public class ConfigMapper {
 		// Load metadata from the class
 		Context context = new Context();
 		extractOptions(cls, object, context, new Path(), false);
+
+		// Check if all non-optional sections are present
+		for (Path path : context.sections.keySet()) {
+			Destination destination = context.sections.get(path);
+			Object value = null;
+
+			try {
+				value = destination.field.get(destination.instance);
+			} catch (IllegalAccessException e) {
+				assert false;
+			}
+
+			if (!destination.isOptional && value == null) {
+				throw new MappingException(String.format("Section %s is null", path));
+			}
+		}
 
 		/**
 		 * A simple holder for a config node and its path

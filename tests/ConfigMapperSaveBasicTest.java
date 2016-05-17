@@ -85,6 +85,15 @@ public class ConfigMapperSaveBasicTest {
 		assertEquals(expected, config);
 	}
 
+	@Test(expected = MappingException.class)
+	public void missingSectionThrows() throws Exception {
+		StructuredMappedClass object = new StructuredMappedClass();
+		object.section1 = null;
+
+		ConfigMapper mapper = new ConfigMapper();
+		mapper.save(object);
+	}
+
 	static class OptionalOptionMappedClass {
 		@ConfigOption(section = "section", optional = true)
 		Integer option;
