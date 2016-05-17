@@ -1,6 +1,7 @@
 import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
+import cz.cuni.mff.ConfigMapper.parsedBoolean;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -23,7 +24,7 @@ public class IniAdapterTest {
                     new ScalarOption("option2", "bar")
             )),
             new Section("sectionB", Arrays.asList(
-                    new ListOption("option3", Arrays.asList("baz", "baz", "baz"),':')
+                    new ListOption("option3", Arrays.asList("baz", "baz", "baz"),":")
             ))
     ));
 
@@ -33,6 +34,16 @@ public class IniAdapterTest {
             "option2=bar",
             "[sectionB]",
             "option3=baz:baz:baz"
+    )).getBytes();
+
+    private static byte[] booleanTestFileContent = (String.join("\n",
+            "[sectionA]",
+            "optionTrue1=1",
+            "optionTrue2=t",
+            "optionTrue3=enabled",
+            "optionFalse1=0",
+            "optionFalse2=f",
+            "optionFalse3=disabled"
     )).getBytes();
 
     private static byte[] trickyFileContent = (String.join("\n",
@@ -56,6 +67,38 @@ public class IniAdapterTest {
 
 		assertEquals(expectedConfig, config);
 	}
+
+    @Test
+    public void readBooleans() throws Exception {
+        byte[] booleanTestFileContent = (String.join("\n",
+                "[sectionA]",
+                "optionTrue1=1",
+                "optionTrue2=t",
+                "optionTrue3=enabled",
+                "optionFalse1=0",
+                "optionFalse2=f",
+                "optionFalse3=disabled",
+                "optionNotBoolean1=true",
+                "optionNotBoolean2=notBoolean"
+        )).getBytes();
+
+        Root expectedConfig = new Root("", Arrays.asList(
+                new Section("sectionA", Arrays.asList(
+                        new ScalarOption("optionTrue1", "1", parsedBoolean.TRUE),
+                        new ScalarOption("optionTrue2", "t", parsedBoolean.TRUE),
+                        new ScalarOption("optionTrue3", "enabled", parsedBoolean.TRUE),
+                        new ScalarOption("optionFalse1", "0", parsedBoolean.FALSE),
+                        new ScalarOption("optionFalse2", "f", parsedBoolean.FALSE),
+                        new ScalarOption("optionFalse3", "disabled", parsedBoolean.FALSE),
+                        new ScalarOption("optionNotBoolean1", "true", parsedBoolean.NOT_BOOLEAN),
+                        new ScalarOption("optionNotBoolean2", "notBoolean", parsedBoolean.NOT_BOOLEAN)
+                ))));
+
+        IniAdapter adapter = new IniAdapter();
+        Root config = adapter.read(new ByteArrayInputStream(booleanTestFileContent));
+
+        assertEquals(expectedConfig, config);
+    }
 
     @Test
     public void extractSectionNameTest() throws Exception {

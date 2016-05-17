@@ -1,5 +1,7 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
+import cz.cuni.mff.ConfigMapper.parsedBoolean;
+
 import java.util.Objects;
 
 /**
@@ -13,6 +15,8 @@ public class ScalarOption extends Option {
 	 */
 	private String value;
 
+    private parsedBoolean booleanValue;
+
 	/**
 	 * @param name the name of the option
 	 * @param value the value of the option
@@ -22,6 +26,11 @@ public class ScalarOption extends Option {
 		this.value = value;
 	}
 
+    public ScalarOption(String name, String value, parsedBoolean booleanValue) {
+        this(name,value);
+        this.booleanValue = booleanValue;
+    }
+
 	/**
 	 * Get the value of the option
 	 * @return the value of the option
@@ -29,6 +38,19 @@ public class ScalarOption extends Option {
 	public String getValue() {
 		return value;
 	}
+
+    /**
+     * Get a boolean value of the option depending on the parsing context
+     * @return TRUE if true, FALSE if false, NOT_BOOLEAN if the option could not be
+     * mapped on a boolean value
+     */
+    public parsedBoolean getBooleanValue() {
+        return booleanValue;
+    }
+
+    public void setBooleanValue(parsedBoolean booleanValue) {
+        this.booleanValue = booleanValue;
+    }
 
 	/**
 	 * Check if both objects contain the same options

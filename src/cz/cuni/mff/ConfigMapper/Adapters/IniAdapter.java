@@ -2,6 +2,7 @@ package cz.cuni.mff.ConfigMapper.Adapters;
 
 import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
+import cz.cuni.mff.ConfigMapper.parsedBoolean;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -13,6 +14,12 @@ import java.util.*;
 public class IniAdapter implements ConfigAdapter {
 
     private static final String DEFAULT_CHARSET = "UTF-8";
+
+    private static final ArrayList<String> TRUE_REPRESENTATION =
+            new ArrayList<>(Arrays.asList( "1", "t", "y", "on", "yes", "enabled" ));
+
+    private static final ArrayList<String> FALSE_REPRESENTATION =
+            new ArrayList<>(Arrays.asList( "0", "f", "n", "off", "no", "disabled" ));
 
     /**
 	 * Parse config from an INI file
@@ -125,12 +132,24 @@ public class IniAdapter implements ConfigAdapter {
                             currentSection.addChild(
                                     new ListOption(name,targetList.getValue(),targetList.getSeparator()));
                         } else {
-                            currentSection.addChild(
-                                    new ScalarOption(name,((ScalarOption)targetOption).getValue()));
+                            ScalarOption targetValue = new ScalarOption(name,((ScalarOption)targetOption).getValue());
+                            targetValue.setBooleanValue(((ScalarOption)targetOption).getBooleanValue());
+                            currentSection.addChild(targetValue);
                         }
 
                     } else { // value is not a link
-                        currentSection.addChild(new ScalarOption(name, value));
+                        ScalarOption newOption = new ScalarOption(name, value);
+
+                        // if the option can be interpreted as a boolean, set the boolean value
+                        if (TRUE_REPRESENTATION.contains(value)) {
+                            newOption.setBooleanValue(parsedBoolean.TRUE);
+                        } else if (FALSE_REPRESENTATION.contains(value)) {
+                            newOption.setBooleanValue(parsedBoolean.FALSE);
+                        } else {
+                            newOption.setBooleanValue(parsedBoolean.NOT_BOOLEAN);
+                        }
+
+                        currentSection.addChild(newOption);
                     }
                 }
 
