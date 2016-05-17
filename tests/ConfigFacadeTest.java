@@ -8,13 +8,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 class StringInputStream extends ByteArrayInputStream {
-	public StringInputStream(String input) {
-		super(input.getBytes());
+	public StringInputStream(String... lines) {
+		super(String.join("\n", Arrays.asList(lines)).getBytes());
 	}
 }
 
@@ -33,53 +35,51 @@ public class ConfigFacadeTest {
 		public boolean optionBool;
 	}
 	
+	@Test
+	public void loadIniBasic() throws Exception {
+		StringInputStream input = new StringInputStream(
+			"[section1]",
+			"optionString = value",
+			"optionInt = 234",
+			"[section2]",
+			"optionBool = true"
+		);
+
+		ConfigFacade facade = new ConfigFacade(new IniAdapter());
+		BasicMappedClass object = facade.load(input, BasicMappedClass.class, LoadingMode.STRICT);
+
+		assertEquals("value", object.optionString);
+		assertEquals(234, object.optionInt);
+		assertEquals(true, object.optionBool);
+	}
+
 	static class BasicMappedRelaxedClass {
 		@ConfigOption(section = "section1")
 		public String optionString;
 
 		@ConfigOption(section = "section2")
 		public boolean optionBool;
-		
+
 		@UndeclaredOptions
-		public Map<String,String> undeclaredOpts;
+		public Map<String,String> undeclaredOpts = new HashMap<>();
 	}
 
-	@Ignore
-	@Test
-	public void loadIniBasic() throws Exception {
-		StringInputStream input = new StringInputStream(
-			"[section1]\n" +
-				"optionString = value\n" +
-				"[section2]\n" +
-				"optionInt = 234\n" +
-				"optionBool = true\n"
-		);
-
-		ConfigFacade facade = new ConfigFacade(new IniAdapter());
-		BasicMappedClass object = facade.load(input, BasicMappedClass.class, LoadingMode.STRICT);
-
-		assertEquals(object.optionString, "value");
-		assertEquals(object.optionInt, 234);
-		assertEquals(object.optionBool, true);
-	}
-
-	@Ignore
 	@Test
 	public void loadIniRelaxed() throws Exception {
 		StringInputStream input = new StringInputStream(
-			"[section1]\n" +
-				"optionString = value\n" +
-				"[section2]\n" +
-				"optionInt = 234\n" +
-				"optionBool = true\n"
+			"[section1]",
+			"optionString = value",
+			"[section2]",
+			"optionInt = 234",
+			"optionBool = true"
 		);
 
 		ConfigFacade facadeRelaxed = new ConfigFacade(new IniAdapter());
 		BasicMappedRelaxedClass objectRelaxed = facadeRelaxed.load(input, BasicMappedRelaxedClass.class, LoadingMode.RELAXED);
 
-		assertEquals(objectRelaxed.optionBool, true);
-		assertEquals(objectRelaxed.optionString, "value");
-		assertEquals(objectRelaxed.undeclaredOpts.get("sectionB#optionInt"), "234");
+		assertEquals(true, objectRelaxed.optionBool);
+		assertEquals("value", objectRelaxed.optionString);
+		assertEquals("234", objectRelaxed.undeclaredOpts.get("section2#optionInt"));
 	}
 
 	static class NestedSectionMappedClass {
@@ -95,14 +95,13 @@ public class ConfigFacadeTest {
 		FooSection sectionB;
 	}
 
-	@Ignore
 	@Test
 	public void loadIniNested() throws Exception {
 		StringInputStream input = new StringInputStream(
-			"[sectionA]\n" +
-				"option = value\n" +
-				"[sectionB]\n" +
-				"option = value2\n"
+			"[sectionA]",
+			"option = value",
+			"[sectionB]",
+			"option = value2"
 		);
 
 		ConfigFacade facade = new ConfigFacade(new IniAdapter());
