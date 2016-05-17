@@ -119,4 +119,36 @@ public class ConfigMapperLoadBasicTest {
 
 		assertEquals(object.option, 0);
 	}
+
+	static class OptionalSectionMappedClass {
+		static class SectionClass {
+			@ConfigOption
+			String option;
+		}
+
+		@ConfigSection(optional = true)
+		SectionClass section;
+	}
+
+	@Test
+	public void loadOptionalSection() throws Exception {
+		Root config = new Root("", Collections.emptyList());
+
+		ConfigMapper mapper = new ConfigMapper();
+		OptionalSectionMappedClass object = mapper.load(config, OptionalSectionMappedClass.class, LoadingMode.STRICT);
+
+		assertEquals(object.section, null);
+	}
+
+	@Test(expected = MappingException.class)
+	public void loadOptionalSectionMissingOptionThrows() throws Exception {
+		Root config = new Root("", Arrays.asList(
+			new Section("section", Collections.emptyList())
+		));
+
+		ConfigMapper mapper = new ConfigMapper();
+		OptionalSectionMappedClass object = mapper.load(config, OptionalSectionMappedClass.class, LoadingMode.STRICT);
+
+		assertEquals(object.section, null);
+	}
 }

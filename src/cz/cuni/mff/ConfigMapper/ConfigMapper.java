@@ -41,6 +41,38 @@ public class ConfigMapper {
 			));
 		}
 
+		// Check if all declared sections are present in the configuration file.
+		for (Map.Entry<Path, Destination> entry : context.sections.entrySet()) {
+			Path path = entry.getKey();
+			Destination destination = entry.getValue();
+
+			if (!isSectionPresent(config, path)) {
+				if (destination.isOptional) {
+					// Remove optional sections from the mapped class
+					// and their options from the context
+					try {
+						destination.set(null);
+					} catch (IllegalAccessException e) {
+						assert false;
+					}
+
+					List<Path> toRemove = context.options.keySet().stream()
+						.filter((Path optionPath) -> optionPath.prefix().equals(path))
+						.collect(Collectors.toList());
+
+					for (Path removedPath : toRemove) {
+						context.options.remove(removedPath);
+					}
+				} else {
+					// Throw an exception if a required section is missing
+					throw new MappingException(String.format(
+						"Section %s is missing in the configuration",
+						path.toString()
+					));
+				}
+			}
+		}
+
 		// Traverse the configuration tree and map it onto the newly created instance
 		for (ConfigNode node : config.getChildren()) {
 			if (node instanceof Section) {
@@ -176,7 +208,8 @@ public class ConfigMapper {
 					? sectionAnnotation.name()
 					: field.getName();
 
-				context.paths.add(path.add(name));
+				Path sectionPath = path.add(name);
+				context.paths.add(sectionPath);
 
 				field.setAccessible(true);
 				Object sectionInstance;
@@ -197,7 +230,12 @@ public class ConfigMapper {
 					return;
 				}
 
-				extractOptions(sectionCls, sectionInstance, context, path.add(name), true);
+				context.sections.put(
+					sectionPath,
+					new Destination(instance, field, sectionAnnotation.optional())
+				);
+
+				extractOptions(sectionCls, sectionInstance, context, sectionPath, true);
 			}
 		}
 	}
@@ -583,6 +621,41 @@ public class ConfigMapper {
 			|| field.getType() == Float.class || field.getType() == float.class
 			|| field.getType() == Double.class || field.getType() == double.class;
 	}
+
+	/**
+	 * Check if a section (given by path) is present in a configuration
+	 * @param config the configuration to check
+	 * @param path path to the section
+	 * @return true if there is a section with given path, false otherwise
+	 */
+	private boolean isSectionPresent(Root config, Path path) {
+		Section cursor = config;
+
+		// Traverse all path components
+		for (int i = 0; i < path.size(); i++) {
+			String componentName = path.get(i);
+
+			// Find a child node with given name
+			Optional<ConfigNode> node = cursor.getChildren().stream()
+				.filter((ConfigNode child) -> child.getName().equals(componentName))
+				.findFirst();
+
+			if (!node.isPresent()) {
+				// Given node was not found in the configuration
+				return false;
+			}
+
+			if (!(node.get() instanceof Section)) {
+				// The node is not a section
+				return false;
+			}
+
+			cursor = (Section) node.get();
+		}
+
+		// All components of the path were found and they are sections
+		return true;
+	}
 }
 
 /**
@@ -652,6 +725,10 @@ class Path {
 
 		return new Path(components.subList(0, components.size() - 1));
 	}
+
+	String get(int index) {
+		return components.get(index);
+	}
 }
 
 /**
@@ -708,6 +785,11 @@ class Context {
 	 * Records the order of field paths in the mapped class
 	 */
 	final List<Path> paths = new ArrayList<>();
+
+	/**
+	 * Maps section names to fields that contain their data in the mapped object
+	 */
+	final Map<Path, Destination> sections = new HashMap<>();
 
 	/**
 	 * A map where undeclared options should be stored
