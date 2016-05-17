@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class ConfigMapperSaveBasicTest {
 	static class BasicMappedClass {
-		@ConfigOption(section = "section1")
+		@ConfigOption(section = "section1", description = "Lorem Ipsum")
 		String optionString;
 
 		@ConfigOption(section = "section1")
@@ -32,9 +32,12 @@ public class ConfigMapperSaveBasicTest {
 		ConfigMapper mapper = new ConfigMapper();
 		Root config = mapper.save(object);
 
+		ScalarOption optionString = new ScalarOption("optionString", "foo");
+		optionString.setDescription("Lorem Ipsum");
+
 		Root expected = new Root("", Arrays.asList(
 			new Section("section1", Arrays.asList(
-				new ScalarOption("optionString", "foo"),
+				optionString,
 				new ScalarOption("optionInt", "10")
 			))
 		));

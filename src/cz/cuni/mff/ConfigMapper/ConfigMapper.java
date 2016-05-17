@@ -351,6 +351,11 @@ public class ConfigMapper {
 						stringValue
 					);
 				}
+
+				ConfigOption optionAnnotation = destination.field.getAnnotation(ConfigOption.class);
+				if (!optionAnnotation.description().isEmpty()) {
+					node.setDescription(optionAnnotation.description());
+				}
 			} catch (IllegalAccessException e) {
 				throw new MappingException(String.format(
 					"Field %s of class %s is not accessible",
@@ -471,7 +476,6 @@ public class ConfigMapper {
 		}
 
 		Field field = destination.field;
-		Object instance = destination.instance;
 
 		boolean fieldAccessible = field.isAccessible();
 		field.setAccessible(true);
