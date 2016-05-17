@@ -1,5 +1,7 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
+import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
+import cz.cuni.mff.ConfigMapper.MappingException;
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
@@ -40,4 +42,54 @@ public class ConfigMapperSaveBasicTest {
 		assertEquals(expected, config);
 	}
 
+	@Test(expected = MappingException.class)
+	public void missingOptionThrows() throws Exception {
+		BasicMappedClass object = new BasicMappedClass();
+		object.optionString = null;
+		object.optionInt = 10;
+
+		ConfigMapper mapper = new ConfigMapper();
+		mapper.save(object);
+	}
+
+	static class OptionalOptionMappedClass {
+		@ConfigOption(section = "section", optional = true)
+		Integer option;
+	}
+
+	@Test
+	public void saveOptionalOptionNotPresent() throws Exception {
+		OptionalOptionMappedClass object = new OptionalOptionMappedClass();
+		object.option = null;
+
+		ConfigMapper mapper = new ConfigMapper();
+		Root config = mapper.save(object);
+
+		Root expected = new Root("", Collections.emptyList());
+
+		assertEquals(expected, config);
+	}
+
+	static class OptionalSectionMappedClass {
+		static class SectionClass {
+			@ConfigOption
+			int option;
+		}
+
+		@ConfigSection(optional = true)
+		SectionClass section;
+	}
+
+	@Test
+	public void saveOptionalSectionNotPresent() throws Exception {
+		OptionalSectionMappedClass object = new OptionalSectionMappedClass();
+		object.section = null;
+
+		ConfigMapper mapper = new ConfigMapper();
+		Root config = mapper.save(object);
+
+		Root expected = new Root("", Collections.emptyList());
+
+		assertEquals(expected, config);
+	}
 }

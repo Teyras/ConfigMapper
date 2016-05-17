@@ -296,33 +296,43 @@ public class ConfigMapper {
 			destination.field.setAccessible(true);
 
 			try {
-				if (destination.field.get(destination.instance) instanceof List) {
+				Object value = destination.field.get(destination.instance);
+
+				if (value == null) {
+					if (!destination.isOptional) {
+						throw new MappingException(String.format("Missing option %s", path));
+					}
+
+					continue;
+				}
+
+				if (value instanceof List) {
 					node = new ListOption(
 						path.lastComponent(),
-						(List<String>) destination.field.get(destination.instance));
+						(List<String>) value);
 				} else if (destination.field.getType().isEnum()) {
-					String value = destination.field.get(destination.instance).toString();
+					String stringValue = value.toString();
 
 					for (ConstantAlias alias : destination.field.getAnnotationsByType(ConstantAlias.class)) {
-						if (alias.constant().equals(value)) {
-							value = alias.alias();
+						if (alias.constant().equals(stringValue)) {
+							stringValue = alias.alias();
 							break;
 						}
 					}
 
 					node = new ScalarOption(
 						path.lastComponent(),
-						value
+						stringValue
 					);
 				} else {
-					String value = destination.field.get(destination.instance).toString();
+					String stringValue = value.toString();
 
-					checkIntegralConstraint(destination.field, value);
-					checkDecimalConstraint(destination.field, value);
+					checkIntegralConstraint(destination.field, stringValue);
+					checkDecimalConstraint(destination.field, stringValue);
 
 					node = new ScalarOption(
 						path.lastComponent(),
-						value
+						stringValue
 					);
 				}
 			} catch (IllegalAccessException e) {
