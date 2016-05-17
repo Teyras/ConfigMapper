@@ -52,6 +52,19 @@ public class ConfigMapper {
 			}
 		}
 
+		// Check if all required fields have been set
+		for (Map.Entry<Path, Destination> entry : context.options.entrySet()) {
+			Destination destination = entry.getValue();
+			Path path = entry.getKey();
+
+			if (!destination.isOptional && !destination.isSet) {
+				throw new MappingException(String.format(
+					"Required option %s is missing",
+					path.toString()
+				));
+			}
+		}
+
 		return instance;
 	}
 
@@ -123,7 +136,7 @@ public class ConfigMapper {
 
 				context.options.put(
 					optionPath,
-					new Destination(instance, field)
+					new Destination(instance, field, fieldAnnotation.optional())
 				);
 			}
 
@@ -264,9 +277,14 @@ public class ConfigMapper {
 						value
 					);
 				} else {
+					String value = destination.field.get(destination.instance).toString();
+
+					checkIntegralConstraint(destination.field, value);
+					checkDecimalConstraint(destination.field, value);
+
 					node = new ScalarOption(
 						path.lastComponent(),
-						destination.field.get(destination.instance).toString()
+						value
 					);
 				}
 			} catch (IllegalAccessException e) {
@@ -283,7 +301,7 @@ public class ConfigMapper {
 		// Insert undeclared options into the item list
 		if (context.undeclaredOptions != null) {
 			for (Map.Entry<String, String> entry : context.undeclaredOptions.entrySet()) {
-				Path path = new Path(entry.getKey().split("#"));
+				Path path = new Path(entry.getKey().split(Path.COMPONENT_SEPARATOR));
 
 				ConfigItem item = new ConfigItem(
 					path,
@@ -398,7 +416,7 @@ public class ConfigMapper {
 
 		try {
 			if (option instanceof ListOption) {
-				field.set(instance, new ArrayList<>(((ListOption) option).getValue()));
+				destination.set(new ArrayList<>(((ListOption) option).getValue()));
 			} else if (option instanceof ScalarOption) {
 				String value = ((ScalarOption) option).getValue();
 
@@ -406,19 +424,19 @@ public class ConfigMapper {
 				checkDecimalConstraint(field, value);
 
 				if (field.getType() == String.class) {
-					field.set(instance, value);
+					destination.set(value);
 				}
 
 				if (field.getType() == int.class || field.getType() == Integer.class) {
-					field.set(instance, Integer.parseInt(value));
+					destination.set(Integer.parseInt(value));
 				}
 
 				if (field.getType() == float.class || field.getType() == Float.class) {
-					field.set(instance, Float.parseFloat(value));
+					destination.set(Float.parseFloat(value));
 				}
 
 				if (field.getType() == double.class || field.getType() == Double.class) {
-					field.set(instance, Double.parseDouble(value));
+					destination.set(Double.parseDouble(value));
 				}
 
 				if (field.getType() == boolean.class || field.getType() == Boolean.class) {
@@ -427,7 +445,7 @@ public class ConfigMapper {
 						|| value.equals("y")
 						|| value.equals("true");
 
-					field.set(instance, isTrue);
+					destination.set(isTrue);
 				}
 
 				if (field.getType().isEnum()) {
@@ -440,11 +458,12 @@ public class ConfigMapper {
 
 					for (Object constant : field.getType().getEnumConstants()) {
 						if (constant.toString().equals(value)) {
-							field.set(instance, constant);
+							destination.set(constant);
+							break;
 						}
 					}
 
-					if (field.get(instance) == null) {
+					if (!destination.isSet) {
 						throw new MappingException(String.format(
 							"Undefined constant %s",
 							value
@@ -474,10 +493,7 @@ public class ConfigMapper {
 			return;
 		}
 
-		if (!(field.getType() == Integer.class || field.getType() == int.class)
-			|| field.getType() == Long.class || field.getType() == long.class
-			|| field.getType() == Float.class || field.getType() == float.class
-			|| field.getType() == Double.class || field.getType() == double.class) {
+		if (!isNumericField(field)) {
 			throw new MappingException(String.format(
 				"@IntegralConstraint is not supported on field %s with type %s",
 				field.getName(),
@@ -513,8 +529,59 @@ public class ConfigMapper {
 		}
 	}
 
-	private void checkDecimalConstraint(Field field, String value) throws MappingException {
+	private void checkDecimalConstraint(Field field, String valueString) throws MappingException {
+		DecimalConstraint constraint = field.getAnnotation(DecimalConstraint.class);
 
+		if (constraint == null) {
+			return;
+		}
+
+		if (!isNumericField(field)) {
+			throw new MappingException(String.format(
+				"@DecimalConstraint is not supported on field %s with type %s",
+				field.getName(),
+				field.getType().getName()
+			));
+		}
+
+		double value = Double.parseDouble(valueString);
+
+		if (value > constraint.max()) {
+			throw new MappingException(String.format(
+				"Value %f is higher than the maximum allowed value (%f) in field %s",
+				value,
+				constraint.max(),
+				field.getName()
+			));
+		}
+
+		if (value < constraint.min()) {
+			throw new MappingException(String.format(
+				"Value %f is lower than the minimum allowed value (%f) in field %s",
+				value,
+				constraint.min(),
+				field.getName()
+			));
+		}
+
+		if (constraint.unsigned() && value < 0) {
+			throw new MappingException(String.format(
+				"Value of field %s is negative, but the field is unsigned",
+				field.getName()
+			));
+		}
+	}
+
+	/**
+	 * Check if a field's type is numeric
+	 * @param field the field to be checked
+	 * @return true if the field is numeric, false otherwise
+	 */
+	private boolean isNumericField(Field field) {
+		return field.getType() == Integer.class || field.getType() == int.class
+			|| field.getType() == Long.class || field.getType() == long.class
+			|| field.getType() == Float.class || field.getType() == float.class
+			|| field.getType() == Double.class || field.getType() == double.class;
 	}
 }
 
@@ -522,6 +589,11 @@ public class ConfigMapper {
  * A helper class that contains parts of a fully qualified name of an option.
  */
 class Path {
+	/**
+	 * The string used to separate path components in text representations of the path
+	 */
+	static final String COMPONENT_SEPARATOR = "#";
+
 	/**
 	 * The components of the option name.
 	 */
@@ -562,7 +634,7 @@ class Path {
 	}
 
 	public String toString() {
-		return String.join("#", components);
+		return String.join(COMPONENT_SEPARATOR, components);
 	}
 
 	int size() {
@@ -596,9 +668,30 @@ class Destination {
 	 */
 	final Field field;
 
-	Destination(Object instance, Field field) {
+	/**
+	 * Has the field been set yet?
+	 */
+	boolean isSet;
+
+	/**
+	 * Is the field (or the corresponding option) optional?
+	 */
+	boolean isOptional;
+
+	Destination(Object instance, Field field, boolean isOptional) {
 		this.instance = instance;
 		this.field = field;
+		this.isOptional = isOptional;
+	}
+
+	/**
+	 * Set the field's value
+	 * @param value value to set
+	 * @throws IllegalAccessException
+	 */
+	public void set(Object value) throws IllegalAccessException {
+		field.set(instance, value);
+		isSet = true;
 	}
 }
 

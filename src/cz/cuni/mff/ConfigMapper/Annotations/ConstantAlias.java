@@ -1,8 +1,6 @@
 package cz.cuni.mff.ConfigMapper.Annotations;
 
-import java.lang.annotation.Repeatable;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.*;
 
 /**
  * Used to set an alias for a value of an enumerable type option
@@ -11,6 +9,7 @@ import java.lang.annotation.RetentionPolicy;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(ConstantAliases.class)
+@Target(ElementType.FIELD)
 public @interface ConstantAlias {
 	/**
 	 * The name of the constant we want to alias (unqualified - "CONST", not "Enumerable.CONST")
