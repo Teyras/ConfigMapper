@@ -412,6 +412,13 @@ public class ConfigMapper {
 				.collect(Collectors.toList())
 			);
 
+			// Set the section description (if possible)
+			Destination sectionDestination = context.sections.get(sectionPath);
+			if (sectionDestination != null) {
+				ConfigSection sectionAnnotation = sectionDestination.field.getAnnotation(ConfigSection.class);
+				section.setDescription(sectionAnnotation.description());
+			}
+
 			// Insert the new node back into the item set
 			items.add(new ConfigItem(sectionPath, section));
 		}

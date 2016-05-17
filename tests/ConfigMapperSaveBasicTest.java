@@ -64,7 +64,7 @@ public class ConfigMapperSaveBasicTest {
 			int optionInt;
 		}
 
-		@ConfigSection
+		@ConfigSection(description = "Section 1")
 		SectionClass section1;
 	}
 
@@ -78,11 +78,14 @@ public class ConfigMapperSaveBasicTest {
 		ConfigMapper mapper = new ConfigMapper();
 		Root config = mapper.save(object);
 
+		Section section = new Section("section1", Arrays.asList(
+			new ScalarOption("optionStringFoo", "foo"),
+			new ScalarOption("optionInt", "10")
+		));
+		section.setDescription("Section 1");
+
 		Root expected = new Root("", Arrays.asList(
-			new Section("section1", Arrays.asList(
-				new ScalarOption("optionStringFoo", "foo"),
-				new ScalarOption("optionInt", "10")
-			))
+			section
 		));
 
 		assertEquals(expected, config);
