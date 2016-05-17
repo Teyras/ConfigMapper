@@ -52,6 +52,39 @@ public class ConfigMapperSaveBasicTest {
 		mapper.save(object);
 	}
 
+	static class StructuredMappedClass {
+		static class SectionClass {
+			@ConfigOption(name = "optionStringFoo")
+			String optionString;
+
+			@ConfigOption
+			int optionInt;
+		}
+
+		@ConfigSection
+		SectionClass section1;
+	}
+
+	@Test
+	public void saveStructured() throws Exception {
+		StructuredMappedClass object = new StructuredMappedClass();
+		object.section1 = new StructuredMappedClass.SectionClass();
+		object.section1.optionString = "foo";
+		object.section1.optionInt = 10;
+
+		ConfigMapper mapper = new ConfigMapper();
+		Root config = mapper.save(object);
+
+		Root expected = new Root("", Arrays.asList(
+			new Section("section1", Arrays.asList(
+				new ScalarOption("optionStringFoo", "foo"),
+				new ScalarOption("optionInt", "10")
+			))
+		));
+
+		assertEquals(expected, config);
+	}
+
 	static class OptionalOptionMappedClass {
 		@ConfigOption(section = "section", optional = true)
 		Integer option;
