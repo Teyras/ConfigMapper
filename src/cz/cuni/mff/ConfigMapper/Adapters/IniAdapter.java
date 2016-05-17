@@ -82,7 +82,7 @@ public class IniAdapter implements ConfigAdapter {
                                  * all added. This would mean modifying the list that is being iterated
                                  * through, so the target will be noted and added after the iteration is done
                                  */
-                                if (opt.getSeparator() == separator) {
+                                if (opt.getSeparator().equals(separator)) {
                                     listsToBeInserted.put(i,opt);
                                 /*
                                  * Lists have different separators, so the target list value is inserted
@@ -114,7 +114,7 @@ public class IniAdapter implements ConfigAdapter {
                     }
 
                     assert currentSection != null;
-                    currentSection.addChild(new ListOption(name,listValue,separator));
+                    currentSection.addChild(new ListOption(name,listValue,Character.toString(separator)));
                 } else { // option has a simple value
                     assert currentSection != null;
 
@@ -255,7 +255,7 @@ public class IniAdapter implements ConfigAdapter {
      * @return true if value is of list type, false otherwise
      */
     private boolean isList(String value) {
-        return !(indexOfUnescaped(value, ',') == -1 && indexOfUnescaped(value, ':') == -1);
+        return (indexOfUnescaped(value, ',') != -1 || indexOfUnescaped(value, ':') != -1);
     }
 
     /**

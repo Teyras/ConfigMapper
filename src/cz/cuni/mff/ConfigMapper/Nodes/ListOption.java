@@ -13,19 +13,49 @@ public class ListOption extends Option {
 	 */
 	private List<String> value;
 
-    /**
-     * The original separator character
-     */
-	private char separator;
+	private String separator;
 
 	/**
+     * Default constructor, which lets the class itself determine the separator
 	 * @param name the name of the option
 	 * @param value the value of the option
 	 */
-	public ListOption(String name, List<String> value, char separator) {
+	public ListOption(String name, List<String> value) {
+        this(name,value,"");
+    }
+
+    /**
+     * Constructor enabling the specification of the separator
+     * @param name the name of the option
+     * @param value the value of the option
+     * @param separator separator
+     */
+	public ListOption(String name, List<String> value, String separator) {
 		super(name);
 		this.value = value;
-        this.separator = separator;
+
+        if (separator.isEmpty()) {
+            // iterate through list counting the occurrences of the separators
+            int commas = 0;
+            int colons = 0;
+            for (String val : value) {
+                commas += val.length() - val.replaceAll(",", "").length();
+                colons += val.length() - val.replaceAll(":", "").length();
+            }
+
+            /*
+             * pick the separator, which minimizes escaping special characters when
+             * printing the list
+             */
+            if (commas < colons) {
+                this.separator = ",";
+            } else {
+                this.separator = ":";
+            }
+
+        } else {
+            this.separator = separator;
+        }
 	}
 
 	/**
@@ -36,7 +66,7 @@ public class ListOption extends Option {
 		return value;
 	}
 
-    public char getSeparator() {return separator;}
+    public String getSeparator() {return separator;}
 
 	/**
 	 * Check if both nodes contain the same lists
@@ -60,6 +90,6 @@ public class ListOption extends Option {
 
 		return Objects.equals(this.name, other.name)
                 && Objects.equals(this.value, other.value)
-                && this.separator == other.getSeparator();
+                && this.separator.equals(other.getSeparator());
 	}
 }
