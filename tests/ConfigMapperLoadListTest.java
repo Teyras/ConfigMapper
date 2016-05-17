@@ -27,7 +27,7 @@ public class ConfigMapperLoadListTest {
 
 		Root config = new Root("", Collections.singletonList(
 			new Section("section", Collections.singletonList(
-				new ListOption("list", listValue, ',')
+				new ListOption("list", listValue, ",")
 			))
 		));
 

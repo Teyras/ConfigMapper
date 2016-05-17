@@ -27,17 +27,17 @@ public class EqualsTest {
 		assertNotEquals(simpleOne1, null);
 	}
 	
-	ListOption listOnes1 = new ListOption("Ones", Arrays.asList("One", "1", "Uno"),',');
-	ListOption listOnes2 = new ListOption("Ones", Arrays.asList("One", "1", "Uno"),',');
-	ListOption listTwos1= new ListOption("Twos", Arrays.asList("Two", "2", "Due"),',');
+	ListOption listOnes1 = new ListOption("Ones", Arrays.asList("One", "1", "Uno"),",");
+	ListOption listOnes2 = new ListOption("Ones", Arrays.asList("One", "1", "Uno"),",");
+	ListOption listTwos1= new ListOption("Twos", Arrays.asList("Two", "2", "Due"),",");
 	@Test
 	public void testListValueEquals() {
-		ListOption listOnesFake= new ListOption("Twos", Arrays.asList("One", "1", "Uno"),',');
-		ListOption listOnesWrongSep= new ListOption("Ones", Arrays.asList("One", "1", "Uno"),':');
-		ListOption listOnesEmpty1 = new ListOption("Empty", Collections.emptyList(),',');
-		ListOption listOnesEmpty2 = new ListOption("Empty", Collections.emptyList(),',');
-		ListOption listOnesEmptyFake = new ListOption("Ones", Collections.emptyList(),',');
-		ListOption listOnesNull = new ListOption("Ones", null,',');
+		ListOption listOnesFake= new ListOption("Twos", Arrays.asList("One", "1", "Uno"),",");
+		ListOption listOnesWrongSep= new ListOption("Ones", Arrays.asList("One", "1", "Uno"),":");
+		ListOption listOnesEmpty1 = new ListOption("Empty", Collections.emptyList(),",");
+		ListOption listOnesEmpty2 = new ListOption("Empty", Collections.emptyList(),",");
+		ListOption listOnesEmptyFake = new ListOption("Ones", Collections.emptyList(),",");
+		ListOption listOnesNull = new ListOption("Ones", null,",");
 		
 		assertEquals(listOnes1, listOnes2);
 		assertEquals(listOnesEmpty1, listOnesEmpty2);

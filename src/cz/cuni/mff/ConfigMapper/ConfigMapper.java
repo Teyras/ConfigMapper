@@ -434,9 +434,10 @@ public class ConfigMapper {
 					((ScalarOption) option).getValue()
 				);
 			} else if (option instanceof ListOption) {
+				ListOption listOption = (ListOption) option;
 				context.undeclaredOptions.put(
 					path.toString(),
-					String.join(":", ((ListOption) option).getValue())
+					String.join(listOption.getSeparator(), listOption.getValue())
 				);
 			}
 

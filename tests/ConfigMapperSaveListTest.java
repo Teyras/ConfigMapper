@@ -29,7 +29,7 @@ public class ConfigMapperSaveListTest {
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Collections.singletonList(
-				new ListOption("list", Arrays.asList("foo", "bar", "baz"), ',')
+				new ListOption("list", Arrays.asList("foo", "bar", "baz"), ",")
 			))
 		));
 
