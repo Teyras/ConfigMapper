@@ -366,14 +366,11 @@ public class ConfigMapper {
 		while (!items.stream().allMatch((ConfigItem item) -> item.path.size() == 1)) {
 			// Pick item with the longest path
 			ConfigItem item = items.first();
-			List<ConfigItem> pickedItems = new ArrayList<>();
 
 			// Find all items that belong in the same section and remove them from the set
-			for (ConfigItem otherItem : items) {
-				if (otherItem.path.prefix().equals(item.path.prefix())) {
-					pickedItems.add(otherItem);
-				}
-			}
+			List<ConfigItem> pickedItems = items.stream()
+				.filter(otherItem -> otherItem.path.prefix().equals(item.path.prefix()))
+				.collect(Collectors.toList());
 
 			items.removeAll(pickedItems);
 
