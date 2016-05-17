@@ -3,6 +3,8 @@ package cz.cuni.mff.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.Adapters.ConfigAdapter;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Provides a simple API for the configuration mapping functionality
@@ -106,7 +108,7 @@ public class ConfigFacade {
 	 * @throws ConfigurationException when the default values cannot be saved in the format supported by the adapter
 	 */
 	public <MappedObject> void saveDefaults(Class<MappedObject> cls, OutputStream output) throws IOException, MappingException, ConfigurationException {
-
+		adapter.write(mapper.saveDefaults(cls), output);
 	}
 
 	/**

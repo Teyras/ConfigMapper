@@ -431,6 +431,18 @@ public class ConfigMapper {
 	}
 
 	/**
+	 * Save the default values for given class into a new ConfigNode structure
+	 * @param cls the class to save
+	 * @return a newly created configuration structure
+	 * @throws MappingException when the mapping of the class isn't correctly defined
+	 */
+	public Root saveDefaults(Class<?> cls) throws MappingException {
+		Object object = constructObject(cls);
+		return save(object);
+	}
+
+
+	/**
 	 * Map a section of the configuration onto an instance of the mapped class.
 	 * @param section The section to be mapped
 	 * @param path The path to the section
