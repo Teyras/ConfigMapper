@@ -122,10 +122,10 @@ public class ConfigFacadeTest {
 		String expected = String.join("\n", Arrays.asList(
 			"[sectionA]",
 			"; Section A",
-			"option=A default value ; An option",
+			"option=A default value\t;An option",
 			"[sectionB]",
 			"; Section B",
-			"option=A default value ; An option",
+			"option=A default value\t;An option",
 			""
 		));
 
