@@ -4,8 +4,6 @@ import cz.cuni.mff.ConfigMapper.Adapters.ConfigAdapter;
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 
 import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Provides a simple API for the configuration mapping functionality
@@ -88,7 +86,7 @@ public class ConfigFacade {
 	 * @throws ConfigurationException When the file cannot be saved in the format supported by the adapter
 	 */
 	public <MappedObject> void save(MappedObject object, OutputStream output) throws MappingException, ConfigurationException, IOException {
-		adapter.write(mapper.save(object), output);
+		adapter.write(mapper.save(object, false), output);
 	}
 
 	/**

@@ -14,18 +14,17 @@ import java.util.Map;
 public class ConfigMapperSaveRelaxedTest {
 	static class WithUndeclaredOptions {
 		@UndeclaredOptions
-		Map<String, String> options;
+		Map<String, String> options = new LinkedHashMap<>();
 	}
 
 	@Test
 	public void saveUndeclaredOpts() throws Exception {
 		WithUndeclaredOptions object = new WithUndeclaredOptions();
-		object.options = new LinkedHashMap<>();
 		object.options.put("section1#foo", "bar");
 		object.options.put("section2#baz", "gah");
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object);
+		Root config = mapper.save(object, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section1", Collections.singletonList(

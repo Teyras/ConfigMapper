@@ -24,7 +24,7 @@ public class ConfigMapperSaveWithDecimalConstraintTest {
 		object.option = -100;
 
 		ConfigMapper mapper = new ConfigMapper();
-		mapper.save(object);
+		mapper.save(object, false);
 	}
 
 	@Test(expected = MappingException.class)
@@ -33,7 +33,7 @@ public class ConfigMapperSaveWithDecimalConstraintTest {
 		object.option = 100;
 
 		ConfigMapper mapper = new ConfigMapper();
-		mapper.save(object);
+		mapper.save(object, false);
 	}
 
 	@Test()
@@ -42,7 +42,7 @@ public class ConfigMapperSaveWithDecimalConstraintTest {
 		object.option = 10.11;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object);
+		Root config = mapper.save(object, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Arrays.asList(

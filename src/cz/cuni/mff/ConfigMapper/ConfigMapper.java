@@ -163,7 +163,9 @@ public class ConfigMapper {
 					}
 
 					// Also construct the subsections of the section
-					constructSections(field.get(instance), requiredOnly);
+					if (field.get(instance) != null) {
+						constructSections(field.get(instance), requiredOnly);
+					}
 				} catch (IllegalAccessException e) {
 					// If makeAccessible() succeeded, this shouldn't happen
 					assert false;
@@ -324,13 +326,23 @@ public class ConfigMapper {
 	 * The mapping information is automatically extracted from the object's class.
 	 *
 	 * @param object The source instance
+	 * @param keepDefaults Should the result contain default values?
 	 * @throws MappingException When the mapped object is invalid
 	 * @return The new configuration structure
 	 */
-	public Root save(Object object) throws MappingException {
+	public Root save(Object object, boolean keepDefaults) throws MappingException {
 		// Load metadata from the class
 		Context context = new Context();
 		extractMappingData(object, context, new Path());
+
+		// Make another context from a default object of the mapped class
+		Context defaultContext = new Context();
+
+		if (!keepDefaults) {
+			Object defaultObject = constructObject(object.getClass());
+			constructSections(defaultObject, true);
+			extractMappingData(defaultObject, defaultContext, new Path());
+		}
 
 		// Check if all non-optional sections are present
 		for (Path path : context.sections.keySet()) {
@@ -389,6 +401,17 @@ public class ConfigMapper {
 				}
 
 				continue;
+			}
+
+			// If an option is optional and equal to its default value, skip it
+			// (unless keepDefaults is set)
+			if (!keepDefaults && defaultContext.options.containsKey(path)) {
+				Destination defaultDestination = defaultContext.options.get(path);
+				Object defaultValue = defaultDestination.get();
+
+				if (defaultDestination.isOptional && Objects.equals(value, defaultValue)) {
+					continue;
+				}
 			}
 
 			Option node = storeOptionValue(path.lastComponent(), destination.field, value);
@@ -508,7 +531,7 @@ public class ConfigMapper {
 	public Root saveDefaults(Class<?> cls) throws MappingException {
 		Object object = constructObject(cls);
 		constructSections(object, true);
-		return save(object);
+		return save(object, true);
 	}
 
 	/**

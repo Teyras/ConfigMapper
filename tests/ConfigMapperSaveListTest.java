@@ -25,7 +25,7 @@ public class ConfigMapperSaveListTest {
 		object.list = list;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object);
+		Root config = mapper.save(object, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Collections.singletonList(
