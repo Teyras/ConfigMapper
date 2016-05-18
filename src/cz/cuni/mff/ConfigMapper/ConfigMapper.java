@@ -27,12 +27,15 @@ public class ConfigMapper {
 		// Create a new instance of the mapped class
 		MappedObject instance = constructObject(cls);
 
+		// Construct all sections of the mapped class
+		constructSections(instance, false);
+
 		// Create a new mapping context
 		Context context = new Context();
 		context.mode = mode;
 
 		// Map available configuration option names to reflections of corresponding fields
-		extractOptions(cls, instance, context, new Path(), true);
+		extractOptions(cls, instance, context, new Path());
 
 		if (mode == LoadingMode.RELAXED && context.undeclaredOptions == null) {
 			throw new MappingException(String.format(
@@ -135,6 +138,28 @@ public class ConfigMapper {
 		}
 	}
 
+	private void constructSections(Object instance, boolean requiredOnly) throws MappingException {
+		Class<?> cls = instance.getClass();
+
+		for (Field field : cls.getDeclaredFields()) {
+			ConfigSection sectionAnnotation = field.getAnnotation(ConfigSection.class);
+
+			if (sectionAnnotation != null) {
+				field.setAccessible(true);
+
+				try {
+					boolean constructIfNotPresent = !(requiredOnly && sectionAnnotation.optional());
+
+					if (field.get(instance) == null && constructIfNotPresent) {
+						field.set(instance, constructObject(field.getType()));
+					}
+				} catch (IllegalAccessException e) {
+					assert false;
+				}
+			}
+		}
+	}
+
 	/**
 	 * Extract fields annotated as options from given class and store them in the mapping context.
 	 * @param cls class to be extracted
@@ -142,11 +167,9 @@ public class ConfigMapper {
 	 * @param context the mapping context where extracted options will be stored
 	 * @param path path where we currently are in the configuration tree
 	 *             (important for recursive calls on section fields)
-	 * @param instantiateSections if set to true, section fields that are null
-	 *                            will be instantiated automatically
 	 * @throws MappingException
 	 */
-	private void extractOptions(Class<?> cls, Object instance, Context context, Path path, boolean instantiateSections) throws MappingException {
+	private void extractOptions(Class<?> cls, Object instance, Context context, Path path) throws MappingException {
 		for (Field field : cls.getDeclaredFields()) {
 			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
 
@@ -217,25 +240,16 @@ public class ConfigMapper {
 				);
 
 				field.setAccessible(true);
-				Object sectionInstance;
 
 				try {
-					sectionInstance = field.get(instance);
+					Object sectionInstance = field.get(instance);
 
-					if (sectionInstance == null) {
-						if (!instantiateSections) {
-							return;
-						}
-
-						sectionInstance = constructObject(sectionCls);
-						field.set(instance, sectionInstance);
+					if (sectionInstance != null) {
+						extractOptions(sectionCls, sectionInstance, context, sectionPath);
 					}
 				} catch (IllegalAccessException e) {
 					assert false;
-					return;
 				}
-
-				extractOptions(sectionCls, sectionInstance, context, sectionPath, true);
 			}
 		}
 	}
@@ -254,7 +268,7 @@ public class ConfigMapper {
 
 		// Load metadata from the class
 		Context context = new Context();
-		extractOptions(cls, object, context, new Path(), false);
+		extractOptions(cls, object, context, new Path());
 
 		// Check if all non-optional sections are present
 		for (Path path : context.sections.keySet()) {
@@ -438,6 +452,7 @@ public class ConfigMapper {
 	 */
 	public Root saveDefaults(Class<?> cls) throws MappingException {
 		Object object = constructObject(cls);
+		constructSections(object, true);
 		return save(object);
 	}
 
