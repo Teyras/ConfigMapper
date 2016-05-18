@@ -178,6 +178,33 @@ public class IniAdapterTest {
         assertArrayEquals(trickyFileExpectedOutput,outputStream.toByteArray());
     }
 
+    @Test
+    public void writeLists() throws Exception {
+        Root configWithLists = new Root("", Arrays.asList(
+                new Section("Lists", Arrays.asList(
+                        new ListOption("easy", Arrays.asList("a", "b", "c"),":"),
+                        new ListOption("withWrongSep1", Arrays.asList("a", "b, c"),":"),
+                        new ListOption("withWrongSep2", Arrays.asList("a", "b: c"),","),
+                        new ListOption("escaped", Arrays.asList("a", "b:c"),":")
+                        )
+                )
+        ));
+
+        byte[] listsTestFileContent = (String.join("\n",
+                "[Lists]",
+                "easy=a:b:c",
+                "withWrongSep1=a:b, c",
+                "withWrongSep2=a,b: c",
+                "escaped=a:b\\:c",
+                ""
+        )).getBytes();
+
+        IniAdapter adapter = new IniAdapter();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        adapter.write(configWithLists,outputStream);
+        assertArrayEquals(listsTestFileContent,outputStream.toByteArray());
+    }
+
     @Test(expected = ConfigurationException.class)
     public void writeFailWrongStructure() throws Exception {
         IniAdapter adapter = new IniAdapter();
