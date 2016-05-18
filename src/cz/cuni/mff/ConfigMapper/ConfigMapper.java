@@ -351,6 +351,11 @@ public class ConfigMapper {
 						stringValue
 					);
 				}
+
+				ConfigOption optionAnnotation = destination.field.getAnnotation(ConfigOption.class);
+				if (!optionAnnotation.description().isEmpty()) {
+					node.setDescription(optionAnnotation.description());
+				}
 			} catch (IllegalAccessException e) {
 				throw new MappingException(String.format(
 					"Field %s of class %s is not accessible",
@@ -407,6 +412,13 @@ public class ConfigMapper {
 				.collect(Collectors.toList())
 			);
 
+			// Set the section description (if possible)
+			Destination sectionDestination = context.sections.get(sectionPath);
+			if (sectionDestination != null) {
+				ConfigSection sectionAnnotation = sectionDestination.field.getAnnotation(ConfigSection.class);
+				section.setDescription(sectionAnnotation.description());
+			}
+
 			// Insert the new node back into the item set
 			items.add(new ConfigItem(sectionPath, section));
 		}
@@ -417,6 +429,18 @@ public class ConfigMapper {
 			.collect(Collectors.toList())
 		);
 	}
+
+	/**
+	 * Save the default values for given class into a new ConfigNode structure
+	 * @param cls the class to save
+	 * @return a newly created configuration structure
+	 * @throws MappingException when the mapping of the class isn't correctly defined
+	 */
+	public Root saveDefaults(Class<?> cls) throws MappingException {
+		Object object = constructObject(cls);
+		return save(object);
+	}
+
 
 	/**
 	 * Map a section of the configuration onto an instance of the mapped class.
@@ -471,7 +495,6 @@ public class ConfigMapper {
 		}
 
 		Field field = destination.field;
-		Object instance = destination.instance;
 
 		boolean fieldAccessible = field.isAccessible();
 		field.setAccessible(true);

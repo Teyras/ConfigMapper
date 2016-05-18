@@ -59,17 +59,14 @@ public class Section extends ConfigNode {
 		if (this == obj) {
 			return true;
 		}
-		if (obj == null) {
+
+		if (!super.equals(obj)) {
 			return false;
 		}
-		if (getClass() != obj.getClass()) {
-			return false;
-		}
-		
+
 		Section other = (Section) obj;
 
-		return Objects.equals(this.name, other.name)
-			&& Objects.equals(this.children, other.children);
+		return Objects.equals(this.children, other.children);
 	}
 
 	

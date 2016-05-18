@@ -8,6 +8,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -84,14 +85,14 @@ public class ConfigFacadeTest {
 
 	static class NestedSectionMappedClass {
 		static class FooSection {
-			@ConfigOption
-			public String option;
+			@ConfigOption(description = "An option")
+			public String option = "A default value";
 		}
 
-		@ConfigSection
+		@ConfigSection(description = "Section 1")
 		FooSection sectionA;
 
-		@ConfigSection
+		@ConfigSection(description = "Section 2")
 		FooSection sectionB;
 	}
 
@@ -109,5 +110,16 @@ public class ConfigFacadeTest {
 
 		assertEquals(object.sectionA.option, "value");
 		assertEquals(object.sectionB.option, "value2");
+	}
+
+	@Test
+	@Ignore
+	public void saveDefaultsIni() throws Exception {
+		ConfigFacade facade = new ConfigFacade(new IniAdapter());
+
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		facade.saveDefaults(NestedSectionMappedClass.class, output);
+
+		String out = output.toString();
 	}
 }
