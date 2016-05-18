@@ -10,6 +10,11 @@ import java.util.*;
 
 /**
  * A configuration adapter for INI files
+ *
+ * The only implementation of the {@link ConfigAdapter} interface. It enables the library
+ * to read and write configuration into/from a Ini file. There are no added public methods
+ * other than the overridden {@link IniAdapter#read(InputStream)} and
+ * {@link IniAdapter#write(Root, OutputStream)}.
  */
 public final class IniAdapter implements ConfigAdapter {
 
@@ -23,7 +28,7 @@ public final class IniAdapter implements ConfigAdapter {
 
 	/**
 	 * Parse config from an INI file
-	 *
+	 * Main reading method, reads file line by line.
 	 * @param input The input stream
 	 * @throws ConfigurationException When the input file is invalid
 	 * @return The configuration structure
@@ -44,7 +49,6 @@ public final class IniAdapter implements ConfigAdapter {
 						outputRoot.addChild(currentSection);
 					}
 					String sectionName = extractSectionName(line);
-					//System.err.println("Creating section: '" + sectionName + "'");
 					currentSection = new Section(sectionName,new ArrayList<>());
 					lastLineWasSection = true;
 					line = reader.readLine();
@@ -58,7 +62,6 @@ public final class IniAdapter implements ConfigAdapter {
 				if (commentStartIndex != -1) {
 					comment = line.substring(commentStartIndex+1);
 					line = line.substring(0,commentStartIndex);
-					// System.err.println("Splitting line into '" + line +  "' and comment '" + comment + "'");
 
 					if (isLineSectionDescription(line, comment, lastLineWasSection)) {
 						assert currentSection != null;
@@ -174,7 +177,9 @@ public final class IniAdapter implements ConfigAdapter {
 			outputRoot.addChild(currentSection);
 
 		} catch (IOException exception) {
-
+			ConfigurationException newExcept = new ConfigurationException("Problem reading the input file");
+			newExcept.setStackTrace(exception.getStackTrace());
+			throw newExcept;
 		}
 
 		return outputRoot;
