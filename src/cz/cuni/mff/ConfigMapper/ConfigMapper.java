@@ -179,6 +179,7 @@ public class ConfigMapper {
 
 	/**
 	 * Extract information about annotated options, sections, etc. from given object and store them in the mapping context.
+	 * For section fields, the function is called recursively.
 	 * @param instance an instance of the class to extract mapping data from
 	 * @param context output parameter - the mapping context where extracted options should be stored
 	 * @param path path where we currently are in the configuration tree
@@ -190,86 +191,126 @@ public class ConfigMapper {
 
 		// Traverse declared fields
 		for (Field field : cls.getDeclaredFields()) {
-			ConfigOption optionAnnotation = field.getAnnotation(ConfigOption.class);
+			processOptionAnnotation(field, instance, context, path);
+			processSectionAnnotation(field, instance, context, path);
+			processUndeclaredOptionsAnnotation(field, instance, context);
+		}
+	}
 
-			if (optionAnnotation != null) {
-				String name = !optionAnnotation.name().isEmpty()
-					? optionAnnotation.name()
-					: field.getName();
+	/**
+	 * If given field has the {@link ConfigOption} annotation, save information about the option into the context
+	 * @param field the field to check
+	 * @param instance instance to check
+	 * @param context the context where the resulting information should be stored
+	 * @param path path of the section containing the field
+	 */
+	private void processOptionAnnotation(Field field, Object instance, Context context, Path path) {
+		ConfigOption optionAnnotation = field.getAnnotation(ConfigOption.class);
 
-				Path optionPath;
+		if (optionAnnotation == null) {
+			return;
+		}
 
-				if (!optionAnnotation.section().isEmpty()) {
-					optionPath = path.add(optionAnnotation.section()).add(name);
-					context.paths.add(path.add(optionAnnotation.section()));
-				} else {
-					optionPath = path.add(name);
-				}
+		String name = !optionAnnotation.name().isEmpty()
+			? optionAnnotation.name()
+			: field.getName();
 
-				context.paths.add(optionPath);
+		Path optionPath;
 
-				context.options.put(
-					optionPath,
-					new Destination(instance, field, optionAnnotation.optional())
-				);
+		if (!optionAnnotation.section().isEmpty()) {
+			optionPath = path.add(optionAnnotation.section()).add(name);
+			context.paths.add(path.add(optionAnnotation.section()));
+		} else {
+			optionPath = path.add(name);
+		}
+
+		context.paths.add(optionPath);
+
+		context.options.put(
+			optionPath,
+			new Destination(instance, field, optionAnnotation.optional())
+		);
+	}
+
+	/**
+	 * If given field has the {@link ConfigSection} annotation, save information about the section into the context
+	 * @param field the field to check
+	 * @param instance instance to check
+	 * @param context the context where the resulting information should be stored
+	 * @param path path of the section containing the field
+	 * @throws MappingException
+	 */
+	private void processSectionAnnotation(Field field, Object instance, Context context, Path path) throws MappingException {
+		ConfigSection sectionAnnotation = field.getAnnotation(ConfigSection.class);
+
+		if (sectionAnnotation == null) {
+			return;
+		}
+
+		String name = !sectionAnnotation.name().isEmpty()
+			? sectionAnnotation.name()
+			: field.getName();
+
+		Path sectionPath = path.add(name);
+		context.paths.add(sectionPath);
+
+		context.sections.put(
+			sectionPath,
+			new Destination(instance, field, sectionAnnotation.optional())
+		);
+
+		field.setAccessible(true);
+
+		try {
+			Object sectionInstance = field.get(instance);
+
+			if (sectionInstance != null) {
+				extractMappingData(sectionInstance, context, sectionPath);
+			}
+		} catch (IllegalAccessException e) {
+			// If setAccessible() succeeded, this shouldn't happen
+			assert false;
+		}
+	}
+
+	/**
+	 * If given field has the {@link UndeclaredOptions} annotation, save information about the undeclared option container into the context
+	 * @param field the field to check
+	 * @param instance instance to check
+	 * @param context the context where the resulting infomration should be stored
+	 * @throws MappingException
+	 */
+	private void processUndeclaredOptionsAnnotation(Field field, Object instance, Context context) throws MappingException {
+		UndeclaredOptions undeclaredAnnotation = field.getAnnotation(UndeclaredOptions.class);
+
+		if (undeclaredAnnotation == null) {
+			return;
+		}
+
+		Class<?> cls = instance.getClass();
+
+		if (context.undeclaredOptions != null) {
+			throw new MappingException(String.format(
+				"Class %s contains more than one field with @UndeclaredOptions",
+				cls.getName()
+			));
+		}
+
+		field.setAccessible(true);
+
+		try {
+			if (!(field.get(instance) instanceof Map<?, ?>)) {
+				throw new MappingException(String.format(
+					"Field %s of class %s is not of type Map<String, String>",
+					field.getName(),
+					cls.getName()
+				));
 			}
 
-			UndeclaredOptions undeclaredAnnotation = field.getAnnotation(UndeclaredOptions.class);
-
-			if (undeclaredAnnotation != null) {
-				if (context.undeclaredOptions != null) {
-					throw new MappingException(String.format(
-						"Class %s contains more than one field with @UndeclaredOptions",
-						cls.getName()
-					));
-				}
-
-				field.setAccessible(true);
-
-				try {
-					if (!(field.get(instance) instanceof Map<?, ?>)) {
-						throw new MappingException(String.format(
-							"Field %s of class %s is not of type Map<String, String>",
-							field.getName(),
-							cls.getName()
-						));
-					}
-
-					context.undeclaredOptions = (Map<String, String>) field.get(instance);
-				} catch (IllegalAccessException e) {
-					// If setAccessible() succeeded, this shouldn't happen
-					assert false;
-				}
-			}
-
-			ConfigSection sectionAnnotation = field.getAnnotation(ConfigSection.class);
-
-			if (sectionAnnotation != null) {
-				String name = !sectionAnnotation.name().isEmpty()
-					? sectionAnnotation.name()
-					: field.getName();
-
-				Path sectionPath = path.add(name);
-				context.paths.add(sectionPath);
-
-				context.sections.put(
-					sectionPath,
-					new Destination(instance, field, sectionAnnotation.optional())
-				);
-
-				field.setAccessible(true);
-
-				try {
-					Object sectionInstance = field.get(instance);
-
-					if (sectionInstance != null) {
-						extractMappingData(sectionInstance, context, sectionPath);
-					}
-				} catch (IllegalAccessException e) {
-					// If setAccessible() succeeded, this shouldn't happen
-					assert false;
-				}
-			}
+			context.undeclaredOptions = (Map<String, String>) field.get(instance);
+		} catch (IllegalAccessException e) {
+			// If setAccessible() succeeded, this shouldn't happen
+			assert false;
 		}
 	}
 
