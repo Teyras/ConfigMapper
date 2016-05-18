@@ -14,7 +14,7 @@ public abstract class ConfigNode {
 	/**
 	 * A description of the node (a comment)
 	 */
-	private String description;
+	private String description = "";
 
 	/**
 	 * @param name the name of the node
