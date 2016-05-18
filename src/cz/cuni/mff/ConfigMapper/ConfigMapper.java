@@ -783,6 +783,7 @@ public class ConfigMapper {
 				return false;
 			}
 
+			// Go deeper into the configuration structure
 			cursor = (Section) node.get();
 		}
 
