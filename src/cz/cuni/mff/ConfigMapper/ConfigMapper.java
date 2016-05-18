@@ -11,7 +11,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Maps {@link ConfigNode} structures to objects and back
+ * Maps {@link ConfigNode} structures to objects and back.
+ * The classes passed to {@link #save(Object, ConfigRoot, boolean)} and {@link #load(ConfigRoot, Class, LoadingMode)}
+ * methods should have their fields decorated with annotation from the {@link cz.cuni.mff.ConfigMapper.Annotations} package.
+ * Mapped classes also need to have a default (parameterless) constructor to set default values of their fields.
  */
 public class ConfigMapper {
 
