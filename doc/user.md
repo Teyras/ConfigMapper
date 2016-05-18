@@ -10,10 +10,10 @@ The ConfigMapper library is used to load and store configuration in/from a local
 done using an instance of the `ConfigFacade` object, which shields the user from the 
 complicated API of the underlying classes and instead provides a simple one. 
 
-```java 
-ConfigFacade<BasicMappedClass> facade = new ConfigFacade<>(BasicMappedClass.class, new IniAdapter());
-BasicMappedClass mappedConfig = facade.load(input, LoadingMode.STRICT); 
-//... More code, possibly modifying the mappedConfig object
+```java
+ConfigFacade facade = new ConfigFacade(new IniAdapter());
+BasicMappedClass mappedConfig = facade.load(input, BasicMappedClass.class 
+LoadingMode.STRICT); //... More code, possibly modifying the mappedConfig object
 facade.save(mappedConfig, output);
 ```
 
@@ -55,8 +55,8 @@ Default values are defined by initializing the class properties.
 
 ### Numeric options
 
-Numeric options can be restricted using the annotation `@NumericValue` by defining 
-one (or more) of the following parameters:
+Numeric options can be restricted using either `@IntegralValue` or 
+`@DecimalValue` with one (or more) of the following parameters:
 * `minimum` sets the numeric minimum of the expected value,
 * `maximum` sets the maximum,
 * boolean value `unsigned` defines, whether the value shall be only positive.
@@ -64,7 +64,7 @@ one (or more) of the following parameters:
 ```
 class MappedClass {
     @ConfigOption
-    @NumericValue(minimum = 128, maximum = 255)
+    @IntegralValue(minimum = 128, maximum = 255)
     int number;
 }
 ```
@@ -141,10 +141,10 @@ class BasicMappedClass {
 }
 
 // instantiating the facade and loading the contents of the file
-ConfigFacade<BasicMappedClass> facade = new ConfigFacade<>(BasicMappedClass.class, new IniAdapter());
-BasicMappedClass config = new BasicMappedClass(); 
+ConfigFacade facade = new ConfigFacade(new IniAdapter());
+BasicMappedClass config = null;
 try (FileInputStream fis = new FileInputStream(new File("myIni.ini"))) {
-	config = facade.load(input, LoadingMode.STRICT);
+	config = facade.load(fis, LoadingMode.STRICT);
 } catch (IOException e) {
 	System.err.println(e.getStackTrace());
 }
