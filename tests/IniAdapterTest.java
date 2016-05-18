@@ -10,9 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Created by teyras on 29.3.16.
@@ -137,6 +135,40 @@ public class IniAdapterTest {
     }
 
     @Test
+    public void readSectionComment() throws Exception {
+        byte[] sectionTestFileContent = (String.join("\n",
+                "[ Sekce 1  ]",
+                ";' Sekce 1  ' comment",
+                "[$Sekce::podsekce]",
+                "option2=bar",
+                "; this is not a section comment",
+                "option3=bar",
+                "[ Sekce 2  ]",
+                "",
+                ";' Sekce 2  ' comment",
+                ""
+        )).getBytes();
+
+        Section sekce1 = new Section("Sekce 1  ", new ArrayList<>());
+        sekce1.setDescription("' Sekce 1  ' comment");
+        Section sekce2 = new Section("Sekce 2  ", new ArrayList<>());
+        sekce2.setDescription("' Sekce 2  ' comment");
+        Root expectedConfig = new Root("", Arrays.asList(
+                sekce1,
+                new Section("$Sekce::podsekce", Arrays.asList(
+                        new ScalarOption("option2", "bar"),
+                        new ScalarOption("option3", "bar")
+                )),
+                sekce2
+        ));
+
+        IniAdapter adapter = new IniAdapter();
+        Root config = adapter.read(new ByteArrayInputStream(sectionTestFileContent));
+
+        assertEquals(expectedConfig, config);
+    }
+
+    @Test
     public void readBasic() throws Exception {
         byte[] input = simpleFileContent;
 
@@ -214,5 +246,41 @@ public class IniAdapterTest {
         ));
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         adapter.write(wrongStructuredConfig,outputStream);
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void testDuplicateSectionException() throws Exception {
+        byte[] sectionNameTestFileContent = (String.join("\n",
+                "[Sekce 1]",
+                "easy1=a:b:c",
+                "easy2=a:b:c",
+                "[Sekce 1]",
+                "easy3=a:b:c",
+                "easy4=a:b:c",
+                ""
+        )).getBytes();
+
+        IniAdapter adapter = new IniAdapter();
+        Root config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
+        // there should be an exception before this
+        assertNull(config);
+    }
+
+    @Test(expected = ConfigurationException.class)
+    public void testDuplicateOptionException() throws Exception {
+        byte[] sectionNameTestFileContent = (String.join("\n",
+                "[Sekce 1]",
+                "easy1=a:b:c",
+                "easy2=a:b:c",
+                "[Sekce 2]",
+                "easy3=a:b:c",
+                "easy3=a:b:c",
+                ""
+        )).getBytes();
+
+        IniAdapter adapter = new IniAdapter();
+        Root config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
+        // there should be an exception before this
+        assertNull(config);
     }
 }
