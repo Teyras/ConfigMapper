@@ -6,7 +6,8 @@ geometry: margin=1in
 
 There are two main approaches to working with configuration files - either the 
 user edits the file directly, or the program features an interface that allows 
-setting preferences in a more comfortable way.
+setting preferences in a more comfortable way and also manages reading and 
+saving it.
 
 The first approach only requires the library to read the configuration file. 
 Writing functionality is however required by the second approach. It is 
@@ -49,6 +50,10 @@ while the API of the configuration file stays the same.
 
 **Possible GUI generation** - another library could use the annotations to 
 generate configuration GUI automatically.
+
+On the other hand, our configuration format is not suitable for very large 
+configuration files - classes with hundreds of options might get hard to 
+maintain.
 
 ## Working with numeric types
 
@@ -119,3 +124,12 @@ programmer, so that he doesn't have to worry about internal objects such as
 `ConfigNode`. It also provides some overloads (loading configuration from File 
 objects instead of a FileStream etc.), so that they don't obscure the API of the 
 "internal" classes.
+
+# Package structure
+
+The `cz.cuni.mff.ConfigMapper` contains two public classes - `ConfigFacade` 
+(sufficient for most use cases) and `ConfigMapper` (highly customized mapping).
+Furthermore, there are three public subpackages - `Annotations` (necessary for 
+defining how configuration should be mapped onto objects), `Adapters` and 
+`Nodes` - the latter two can be used by those who want to write their own 
+configuration format adapter (YAML, XML, JSON...).
