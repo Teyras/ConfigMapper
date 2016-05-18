@@ -1,7 +1,7 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.ConstantAlias;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Assert;
@@ -31,9 +31,9 @@ public class ConfigMapperSaveEnumTest {
 		object.option2 = WithEnum.OptionEnum.ON;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Arrays.asList(
+		ConfigRoot expected = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option1", "OOFF"),
 				new ScalarOption("option2", "ON")
@@ -67,9 +67,9 @@ public class ConfigMapperSaveEnumTest {
 		object.option2 = WithChainedEnum.OptionEnum.OFF;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Arrays.asList(
+		ConfigRoot expected = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option1", "OFF"),
 				new ScalarOption("option2", "ON")

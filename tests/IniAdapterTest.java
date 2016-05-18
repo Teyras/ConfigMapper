@@ -17,15 +17,15 @@ import static org.junit.Assert.*;
  * Testing IniAdapter methods
  */
 public class IniAdapterTest {
-    private static Root simpleConfig;
+    private static ConfigRoot simpleConfig;
 
-    private static Root trickyConfig;
+    private static ConfigRoot trickyConfig;
 
     @BeforeClass
     public static void prepareConfig() {
         ScalarOption fooWithComment = new ScalarOption("option1", "foo");
         fooWithComment.setDescription(" this is foo");
-        simpleConfig = new Root("", Arrays.asList(
+        simpleConfig = new ConfigRoot("", Arrays.asList(
                 new Section("sectionA", Arrays.asList(
                         fooWithComment,
                         new ScalarOption("option2", "bar")
@@ -37,7 +37,7 @@ public class IniAdapterTest {
 
         ScalarOption wierdFooWithComment = new ScalarOption("option1", "f\\;oo");
         wierdFooWithComment.setDescription(" comment");
-        trickyConfig = new Root("", Arrays.asList(
+        trickyConfig = new ConfigRoot("", Arrays.asList(
                 new Section("sectionA", Arrays.asList(
                         wierdFooWithComment,
                         new ScalarOption(" opti\\ on2  ", "bar")
@@ -93,7 +93,7 @@ public class IniAdapterTest {
                 "optionNotBoolean2=notBoolean"
         )).getBytes();
 
-        Root expectedConfig = new Root("", Arrays.asList(
+        ConfigRoot expectedConfig = new ConfigRoot("", Arrays.asList(
                 new Section("sectionA", Arrays.asList(
                         new ScalarOption("optionTrue1", "1", ParsedBoolean.TRUE),
                         new ScalarOption("optionTrue2", "t", ParsedBoolean.TRUE),
@@ -106,7 +106,7 @@ public class IniAdapterTest {
                 ))));
 
         IniAdapter adapter = new IniAdapter();
-        Root config = adapter.read(new ByteArrayInputStream(booleanTestFileContent));
+        ConfigRoot config = adapter.read(new ByteArrayInputStream(booleanTestFileContent));
 
         assertEquals(expectedConfig, config);
     }
@@ -121,7 +121,7 @@ public class IniAdapterTest {
                 ""
         )).getBytes();
 
-        Root expectedConfig = new Root("", Arrays.asList(
+        ConfigRoot expectedConfig = new ConfigRoot("", Arrays.asList(
                 new Section("Sekce 1", new ArrayList<>()),
                 new Section("Sekce 1  ", new ArrayList<>()),
                 new Section("$Sekce::podsekce", new ArrayList<>()),
@@ -129,7 +129,7 @@ public class IniAdapterTest {
         ));
 
         IniAdapter adapter = new IniAdapter();
-        Root config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
+        ConfigRoot config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
 
         assertEquals(expectedConfig, config);
     }
@@ -153,7 +153,7 @@ public class IniAdapterTest {
         sekce1.setDescription("' Sekce 1  ' comment");
         Section sekce2 = new Section("Sekce 2  ", new ArrayList<>());
         sekce2.setDescription("' Sekce 2  ' comment");
-        Root expectedConfig = new Root("", Arrays.asList(
+        ConfigRoot expectedConfig = new ConfigRoot("", Arrays.asList(
                 sekce1,
                 new Section("$Sekce::podsekce", Arrays.asList(
                         new ScalarOption("option2", "bar"),
@@ -163,7 +163,7 @@ public class IniAdapterTest {
         ));
 
         IniAdapter adapter = new IniAdapter();
-        Root config = adapter.read(new ByteArrayInputStream(sectionTestFileContent));
+        ConfigRoot config = adapter.read(new ByteArrayInputStream(sectionTestFileContent));
 
         assertEquals(expectedConfig, config);
     }
@@ -172,10 +172,10 @@ public class IniAdapterTest {
     public void readBasic() throws Exception {
         byte[] input = simpleFileContent;
 
-        Root expectedConfig = simpleConfig;
+        ConfigRoot expectedConfig = simpleConfig;
 
         IniAdapter adapter = new IniAdapter();
-        Root config = adapter.read(new ByteArrayInputStream(input));
+        ConfigRoot config = adapter.read(new ByteArrayInputStream(input));
 
         assertEquals(expectedConfig, config);
     }
@@ -184,10 +184,10 @@ public class IniAdapterTest {
     public void readTricky() throws Exception {
         byte[] input = trickyFileContent;
 
-        Root expectedConfig = trickyConfig;
+        ConfigRoot expectedConfig = trickyConfig;
 
         IniAdapter adapter = new IniAdapter();
-        Root config = adapter.read(new ByteArrayInputStream(input));
+        ConfigRoot config = adapter.read(new ByteArrayInputStream(input));
 
         assertEquals(expectedConfig, config);
     }
@@ -212,7 +212,7 @@ public class IniAdapterTest {
 
     @Test
     public void writeLists() throws Exception {
-        Root configWithLists = new Root("", Arrays.asList(
+        ConfigRoot configWithLists = new ConfigRoot("", Arrays.asList(
                 new Section("Lists", Arrays.asList(
                         new ListOption("easy", Arrays.asList("a", "b", "c"),":"),
                         new ListOption("withWrongSep1", Arrays.asList("a", "b, c"),":"),
@@ -240,7 +240,7 @@ public class IniAdapterTest {
     @Test(expected = ConfigurationException.class)
     public void writeFailWrongStructure() throws Exception {
         IniAdapter adapter = new IniAdapter();
-        Root wrongStructuredConfig = new Root("", Arrays.asList(
+        ConfigRoot wrongStructuredConfig = new ConfigRoot("", Arrays.asList(
                 new ScalarOption("option1", "foo"),
                 new ScalarOption("option2", "bar")
         ));
@@ -261,7 +261,7 @@ public class IniAdapterTest {
         )).getBytes();
 
         IniAdapter adapter = new IniAdapter();
-        Root config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
+        ConfigRoot config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
         // there should be an exception before this
         assertNull(config);
     }
@@ -279,7 +279,7 @@ public class IniAdapterTest {
         )).getBytes();
 
         IniAdapter adapter = new IniAdapter();
-        Root config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
+        ConfigRoot config = adapter.read(new ByteArrayInputStream(sectionNameTestFileContent));
         // there should be an exception before this
         assertNull(config);
     }

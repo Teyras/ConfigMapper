@@ -1,10 +1,8 @@
 import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
-import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.ListOption;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
-import cz.cuni.mff.ConfigMapper.ParsedBoolean;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -71,7 +69,7 @@ public class IniAdapterAssignmentTest {
             "bool3=f",
             "" )).getBytes();
 
-    private static Root expectedConfig;
+    private static ConfigRoot expectedConfig;
     @BeforeClass
     public static void prepareConfig() {
         // setting up first section
@@ -99,7 +97,7 @@ public class IniAdapterAssignmentTest {
 
         ListOption option5 = new ListOption("Option 5", Arrays.asList("v1", "v2:v3"), ",");
         option5.setDescription(" volba 'Option 5' je seznam hodnot 'v1' a 'v2:v3', nebo 'v1, v2' a 'v3' podle zvoleneho oddelovace");
-        expectedConfig = new Root("", Arrays.asList(
+        expectedConfig = new ConfigRoot("", Arrays.asList(
                 sekce1,
                 new Section("$Sekce::podsekce", Arrays.asList(
                         option2,
@@ -130,7 +128,7 @@ public class IniAdapterAssignmentTest {
 		byte[] input = fileContent;
 
 		IniAdapter adapter = new IniAdapter();
-		Root config = adapter.read(new ByteArrayInputStream(input));
+		ConfigRoot config = adapter.read(new ByteArrayInputStream(input));
 
 		assertEquals(expectedConfig, config);
 	}

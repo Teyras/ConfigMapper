@@ -1,6 +1,6 @@
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Assert;
@@ -24,9 +24,9 @@ public class ConfigMapperSaveRelaxedTest {
 		object.options.put("section2#baz", "gah");
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Arrays.asList(
+		ConfigRoot expected = new ConfigRoot("", Arrays.asList(
 			new Section("section1", Collections.singletonList(
 				new ScalarOption("foo", "bar")
 			)),

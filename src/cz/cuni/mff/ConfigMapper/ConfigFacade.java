@@ -1,7 +1,7 @@
 package cz.cuni.mff.ConfigMapper;
 
 import cz.cuni.mff.ConfigMapper.Adapters.ConfigAdapter;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 
 import java.io.*;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class ConfigFacade {
 	/**
 	 * Stores the configuration structures used for loading objects
 	 */
-	private final Map<Object, Root> originalConfigs = new HashMap<>();
+	private final Map<Object, ConfigRoot> originalConfigs = new HashMap<>();
 
 	/**
 	 * @param adapter The adapter used to read and write configuration files
@@ -44,7 +44,7 @@ public class ConfigFacade {
 	 * @throws ConfigurationException when the configuration file is malformed
 	 */
 	public <MappedObject> MappedObject load(InputStream input, Class<MappedObject> cls, LoadingMode mode) throws MappingException, ConfigurationException {
-		Root config = adapter.read(input);
+		ConfigRoot config = adapter.read(input);
 		MappedObject object = mapper.load(config, cls, mode);
 		originalConfigs.put(object, config);
 		return object;
@@ -96,7 +96,7 @@ public class ConfigFacade {
 	 * @throws ConfigurationException When the file cannot be saved in the format supported by the adapter
 	 */
 	public <MappedObject> void save(MappedObject object, OutputStream output) throws MappingException, ConfigurationException, IOException {
-		Root config = mapper.save(object, originalConfigs.get(object), false);
+		ConfigRoot config = mapper.save(object, originalConfigs.get(object), false);
 		adapter.write(config, output);
 	}
 
@@ -118,7 +118,7 @@ public class ConfigFacade {
 	 * @throws ConfigurationException when the default values cannot be saved in the format supported by the adapter
 	 */
 	public <MappedObject> void saveDefaults(Class<MappedObject> cls, OutputStream output) throws IOException, MappingException, ConfigurationException {
-		Root config = mapper.saveDefaults(cls);
+		ConfigRoot config = mapper.saveDefaults(cls);
 		adapter.write(config, output);
 	}
 

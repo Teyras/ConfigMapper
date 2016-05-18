@@ -28,7 +28,7 @@ public class ConfigMapperLoadBasicTest {
 	@Test
 	public void loadBasic() throws Exception {
 		// Set up testing config structure
-		Root config = new Root("config.ini", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("config.ini", Arrays.asList(
 			new Section("section1", Arrays.asList(
 				new ScalarOption("optionString", "value"),
 				new ScalarOption("optionInt", "10")
@@ -51,7 +51,7 @@ public class ConfigMapperLoadBasicTest {
 	@Test(expected = MappingException.class)
 	public void loadUndeclaredThrows() throws Exception {
 		// Set up testing config structure
-		Root config = new Root("config.ini", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("config.ini", Arrays.asList(
 			new Section("section1", Arrays.asList(
 				new ScalarOption("optionFooBarBaz", "value")
 			))
@@ -64,7 +64,7 @@ public class ConfigMapperLoadBasicTest {
 
 	@Test(expected = MappingException.class)
 	public void missingOptionThrows() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("section1", Arrays.asList(
 				new ScalarOption("optionString", "foo"),
 				new ScalarOption("optionInt", "110")
@@ -82,7 +82,7 @@ public class ConfigMapperLoadBasicTest {
 
 	@Test(expected = MappingException.class)
 	public void nonBooleanInBooleanFieldThrows() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option", "foo", ParsedBoolean.NOT_BOOLEAN)
 			))
@@ -107,7 +107,7 @@ public class ConfigMapperLoadBasicTest {
 
 	@Test
 	public void loadStructured() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("sectionA", Arrays.asList(
 				new ScalarOption("option", "value")
 			)),
@@ -130,7 +130,7 @@ public class ConfigMapperLoadBasicTest {
 
 	@Test
 	public void loadOptionalOption() throws Exception {
-		Root config = new Root("", Collections.emptyList());
+		ConfigRoot config = new ConfigRoot("", Collections.emptyList());
 
 		ConfigMapper mapper = new ConfigMapper();
 		OptionalOptionMappedClass object = mapper.load(config, OptionalOptionMappedClass.class, LoadingMode.STRICT);
@@ -150,7 +150,7 @@ public class ConfigMapperLoadBasicTest {
 
 	@Test
 	public void loadOptionalSection() throws Exception {
-		Root config = new Root("", Collections.emptyList());
+		ConfigRoot config = new ConfigRoot("", Collections.emptyList());
 
 		ConfigMapper mapper = new ConfigMapper();
 		OptionalSectionMappedClass object = mapper.load(config, OptionalSectionMappedClass.class, LoadingMode.STRICT);
@@ -160,7 +160,7 @@ public class ConfigMapperLoadBasicTest {
 
 	@Test(expected = MappingException.class)
 	public void loadOptionalSectionMissingOptionThrows() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("section", Collections.emptyList())
 		));
 

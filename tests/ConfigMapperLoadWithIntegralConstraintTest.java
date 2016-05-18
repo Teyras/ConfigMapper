@@ -3,7 +3,7 @@ import cz.cuni.mff.ConfigMapper.Annotations.IntegralConstraint;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import cz.cuni.mff.ConfigMapper.MappingException;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Assert;
@@ -20,7 +20,7 @@ public class ConfigMapperLoadWithIntegralConstraintTest {
 
 	@Test(expected = MappingException.class)
 	public void loadLowThrows() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option", "-100")
 			))
@@ -32,7 +32,7 @@ public class ConfigMapperLoadWithIntegralConstraintTest {
 
 	@Test(expected = MappingException.class)
 	public void loadHighThrows() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option", "100")
 			))
@@ -44,7 +44,7 @@ public class ConfigMapperLoadWithIntegralConstraintTest {
 
 	@Test()
 	public void loadCorrect() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option", "2")
 			))

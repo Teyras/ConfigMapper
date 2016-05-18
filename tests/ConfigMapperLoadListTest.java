@@ -2,7 +2,7 @@ import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import cz.cuni.mff.ConfigMapper.Nodes.ListOption;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,7 +25,7 @@ public class ConfigMapperLoadListTest {
 			"baz"
 		);
 
-		Root config = new Root("", Collections.singletonList(
+		ConfigRoot config = new ConfigRoot("", Collections.singletonList(
 			new Section("section", Collections.singletonList(
 				new ListOption("list", listValue, ",")
 			))

@@ -3,7 +3,7 @@ import cz.cuni.mff.ConfigMapper.Annotations.ConstantAlias;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import cz.cuni.mff.ConfigMapper.MappingException;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Assert;
@@ -45,7 +45,7 @@ public class ConfigMapperLoadEnumTest {
 	}
 	@Test
 	public void loadEnum() throws Exception {
-		Root config = new Root("", Collections.singletonList(
+		ConfigRoot config = new ConfigRoot("", Collections.singletonList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option1", "OOFF"),
 				new ScalarOption("option2", "OFF")
@@ -61,7 +61,7 @@ public class ConfigMapperLoadEnumTest {
 
 	@Test(expected = MappingException.class)
 	public void loadEnumUnknownConstantThrows() throws Exception {
-		Root config = new Root("", Collections.singletonList(
+		ConfigRoot config = new ConfigRoot("", Collections.singletonList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option1", "FOO"),
 				new ScalarOption("option2", "BAR")
@@ -74,7 +74,7 @@ public class ConfigMapperLoadEnumTest {
 
 	@Test
 	public void loadChainedEnum() throws Exception {
-		Root config = new Root("", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option1", "OFF"),
 				new ScalarOption("option2", "ON")

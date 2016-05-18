@@ -24,7 +24,7 @@ public class ConfigMapper {
 	 * @throws MappingException When the loaded configuration cannot be mapped onto an object of given class
 	 * @return A new instance of given class with options from config
 	 */
-	public <MappedObject> MappedObject load(Root config, Class<MappedObject> cls, LoadingMode mode) throws MappingException {
+	public <MappedObject> MappedObject load(ConfigRoot config, Class<MappedObject> cls, LoadingMode mode) throws MappingException {
 		// Create a new instance of the mapped class
 		MappedObject instance = constructObject(cls);
 
@@ -331,7 +331,7 @@ public class ConfigMapper {
 	 * @throws MappingException When the mapped object is invalid
 	 * @return The new configuration structure
 	 */
-	public Root save(Object object, Root originalConfig, boolean keepDefaults) throws MappingException {
+	public ConfigRoot save(Object object, ConfigRoot originalConfig, boolean keepDefaults) throws MappingException {
 		// Load metadata from the class
 		Context context = new Context();
 		extractMappingData(object, context, new Path());
@@ -458,7 +458,7 @@ public class ConfigMapper {
 
 		// If there are no options, return an empty configuration tree
 		if (items.size() == 0) {
-			return new Root("", Collections.emptyList());
+			return new ConfigRoot("", Collections.emptyList());
 		}
 
 		// Until all items are at the top level (i.e. their paths only have one component)
@@ -492,7 +492,7 @@ public class ConfigMapper {
 		}
 
 		// Group the top-level nodes under a root node and return it
-		return new Root("", items.stream()
+		return new ConfigRoot("", items.stream()
 			.map((ConfigItem item) -> item.node)
 			.collect(Collectors.toList())
 		);
@@ -545,7 +545,7 @@ public class ConfigMapper {
 	 * @return a newly created configuration structure
 	 * @throws MappingException when the mapping of the class isn't correctly defined
 	 */
-	public Root saveDefaults(Class<?> cls) throws MappingException {
+	public ConfigRoot saveDefaults(Class<?> cls) throws MappingException {
 		Object object = constructObject(cls);
 		constructSections(object, true);
 		return save(object, null, true);
@@ -838,7 +838,7 @@ public class ConfigMapper {
 	 * @param path the path of required node
 	 * @return the node or null
 	 */
-	private ConfigNode getNode(Root config, Path path) {
+	private ConfigNode getNode(ConfigRoot config, Path path) {
 		Section cursor = config;
 
 		// Traverse all path components
@@ -873,7 +873,7 @@ public class ConfigMapper {
 	 * @param path path to the section
 	 * @return true if there is a section with given path, false otherwise
 	 */
-	private boolean isSectionPresent(Root config, Path path) {
+	private boolean isSectionPresent(ConfigRoot config, Path path) {
 		return getNode(config, path) instanceof Section;
 	}
 }

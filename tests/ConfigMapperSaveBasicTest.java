@@ -2,7 +2,7 @@ import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.MappingException;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Test;
@@ -30,12 +30,12 @@ public class ConfigMapperSaveBasicTest {
 		object.optionInt = 10;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
 		ScalarOption optionString = new ScalarOption("optionString", "foo");
 		optionString.setDescription("Lorem Ipsum");
 
-		Root expected = new Root("", Arrays.asList(
+		ConfigRoot expected = new ConfigRoot("", Arrays.asList(
 			new Section("section1", Arrays.asList(
 				optionString,
 				new ScalarOption("optionInt", "10")
@@ -76,7 +76,7 @@ public class ConfigMapperSaveBasicTest {
 		object.section1.optionInt = 10;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
 		Section section = new Section("section1", Arrays.asList(
 			new ScalarOption("optionStringFoo", "foo"),
@@ -84,7 +84,7 @@ public class ConfigMapperSaveBasicTest {
 		));
 		section.setDescription("Section 1");
 
-		Root expected = new Root("", Arrays.asList(
+		ConfigRoot expected = new ConfigRoot("", Arrays.asList(
 			section
 		));
 
@@ -111,9 +111,9 @@ public class ConfigMapperSaveBasicTest {
 		object.option = null;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Collections.emptyList());
+		ConfigRoot expected = new ConfigRoot("", Collections.emptyList());
 
 		assertEquals(expected, config);
 	}
@@ -134,9 +134,9 @@ public class ConfigMapperSaveBasicTest {
 		object.section = null;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Collections.emptyList());
+		ConfigRoot expected = new ConfigRoot("", Collections.emptyList());
 
 		assertEquals(expected, config);
 	}
@@ -151,9 +151,9 @@ public class ConfigMapperSaveBasicTest {
 		DefaultValuesMappedClass object = new DefaultValuesMappedClass();
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Collections.emptyList());
+		ConfigRoot expected = new ConfigRoot("", Collections.emptyList());
 		assertEquals(expected, config);
 	}
 
@@ -163,9 +163,9 @@ public class ConfigMapperSaveBasicTest {
 		object.option = 123;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Arrays.asList(
+		ConfigRoot expected = new ConfigRoot("", Arrays.asList(
 			new Section("section", Arrays.asList(
 				new ScalarOption("option", "123")
 			))

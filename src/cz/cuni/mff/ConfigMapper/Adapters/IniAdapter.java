@@ -14,7 +14,7 @@ import java.util.*;
  * The only implementation of the {@link ConfigAdapter} interface. It enables the library
  * to read and write configuration into/from a Ini file. There are no added public methods
  * other than the overridden {@link IniAdapter#read(InputStream)} and
- * {@link IniAdapter#write(Root, OutputStream)}.
+ * {@link IniAdapter#write(ConfigRoot, OutputStream)}.
  */
 public final class IniAdapter implements ConfigAdapter {
 
@@ -34,8 +34,8 @@ public final class IniAdapter implements ConfigAdapter {
 	 * @return The configuration structure
 	 */
 	@Override
-	public Root read(InputStream input) throws ConfigurationException {
-		Root outputRoot = new Root("", new ArrayList<>());
+	public ConfigRoot read(InputStream input) throws ConfigurationException {
+		ConfigRoot outputRoot = new ConfigRoot("", new ArrayList<>());
 
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
 
@@ -195,7 +195,7 @@ public final class IniAdapter implements ConfigAdapter {
 	 * @throws IOException when writing to the output stream fails
 	 */
 	@Override
-	public void write(Root configRoot, OutputStream output) throws ConfigurationException, IOException {
+	public void write(ConfigRoot configRoot, OutputStream output) throws ConfigurationException, IOException {
 		StringBuilder outputString = new StringBuilder();
 
 		for (ConfigNode child : configRoot.getChildren()) {
@@ -259,7 +259,7 @@ public final class IniAdapter implements ConfigAdapter {
 	 * @return actual value of the link
 	 * @throws ConfigurationException if the link address is invalid
 	 */
-	private Option getLinkValue(String linkString, Root currentRoot, Section currentSection) throws ConfigurationException {
+	private Option getLinkValue(String linkString, ConfigRoot currentRoot, Section currentSection) throws ConfigurationException {
 		String linkTarget = linkString.substring(linkString.indexOf('{')+1,linkString.indexOf('}'));
 		String targetSection = linkTarget.substring(0,linkTarget.indexOf('#'));
 		String targetOption = linkTarget.substring(linkTarget.indexOf('#')+1);

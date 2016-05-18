@@ -2,7 +2,7 @@ import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.LoadingMode;
 import cz.cuni.mff.ConfigMapper.MappingException;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Assert;
@@ -27,7 +27,7 @@ public class ConfigMapperLoadRelaxedTest {
 			new ScalarOption("option2", "10")
 		));
 
-		Root config = new Root("config.ini", Arrays.asList(
+		ConfigRoot config = new ConfigRoot("config.ini", Arrays.asList(
 			section1
 		));
 
@@ -53,7 +53,7 @@ public class ConfigMapperLoadRelaxedTest {
 
 	@Test(expected = MappingException.class)
 	public void loadRelaxedMultipleUndeclaredContainersThrows() throws Exception {
-		Root config = new Root("config.ini", Collections.emptyList());
+		ConfigRoot config = new ConfigRoot("config.ini", Collections.emptyList());
 
 		// Instantiate the mapper
 		ConfigMapper mapper = new ConfigMapper();
@@ -62,7 +62,7 @@ public class ConfigMapperLoadRelaxedTest {
 
 	@Test(expected = MappingException.class)
 	public void loadRelaxedNoUndeclaredContainersThrows() throws Exception {
-		Root config = new Root("config.ini", Collections.emptyList());
+		ConfigRoot config = new ConfigRoot("config.ini", Collections.emptyList());
 
 		// Instantiate the mapper
 		ConfigMapper mapper = new ConfigMapper();

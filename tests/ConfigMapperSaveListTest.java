@@ -1,7 +1,7 @@
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.Nodes.ListOption;
-import cz.cuni.mff.ConfigMapper.Nodes.Root;
+import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,9 +25,9 @@ public class ConfigMapperSaveListTest {
 		object.list = list;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, null, false);
+		ConfigRoot config = mapper.save(object, null, false);
 
-		Root expected = new Root("", Arrays.asList(
+		ConfigRoot expected = new ConfigRoot("", Arrays.asList(
 			new Section("section", Collections.singletonList(
 				new ListOption("list", Arrays.asList("foo", "bar", "baz"), ",")
 			))
