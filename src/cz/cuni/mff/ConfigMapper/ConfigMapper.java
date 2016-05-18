@@ -138,6 +138,13 @@ public class ConfigMapper {
 		}
 	}
 
+	/**
+	 * Traverse the fields of an object and, if necessary,
+	 * initialize those annotated with {@link ConfigSection} using the default constructor.
+	 * @param instance an object whose sections we need to construct
+	 * @param requiredOnly if set to true, optional sections will not be initialized
+	 * @throws MappingException
+	 */
 	private void constructSections(Object instance, boolean requiredOnly) throws MappingException {
 		Class<?> cls = instance.getClass();
 
@@ -153,6 +160,8 @@ public class ConfigMapper {
 					if (field.get(instance) == null && constructIfNotPresent) {
 						field.set(instance, constructObject(field.getType()));
 					}
+
+					constructSections(field.get(instance), requiredOnly);
 				} catch (IllegalAccessException e) {
 					assert false;
 				}
