@@ -11,7 +11,7 @@ import java.util.*;
 /**
  * A configuration adapter for INI files
  */
-public class IniAdapter implements ConfigAdapter {
+public final class IniAdapter implements ConfigAdapter {
 
     private static final String DEFAULT_CHARSET = "UTF-8";
 
@@ -50,7 +50,7 @@ public class IniAdapter implements ConfigAdapter {
                 }
 
                 // handle comment
-                String comment;
+                String comment = "";
                 int commentStartIndex = indexOfUnescaped(line,';');
                 // if the line contains an unescaped ';', strip the comment part
                 if (commentStartIndex != -1) {
@@ -76,7 +76,7 @@ public class IniAdapter implements ConfigAdapter {
                 if (isList(value)) {
 
                     List<String> listValue = parseIntoList(value);
-                    char separator = getListSeparator(value);
+                    String separator = getListSeparator(value);
                     SortedMap<Integer,ListOption> listsToBeInserted = new TreeMap<>(Collections.reverseOrder());
                     for (int i=0; i < listValue.size(); ++i) {
                         if (isLink(listValue.get(i))) {
@@ -115,13 +115,16 @@ public class IniAdapter implements ConfigAdapter {
                     for (Map.Entry<Integer,ListOption> toBeInserted : listsToBeInserted.entrySet()) {
                         int insertionIndex = toBeInserted.getKey();
                         List<String> insertingList = toBeInserted.getValue().getValue();
-                        for (int i = insertionIndex; i < insertingList.size(); ++i) {
+                        listValue.set(insertionIndex,insertingList.get(0));
+                        for (int i = insertionIndex + 1; i <= insertingList.size(); ++i) {
                             listValue.add(i,insertingList.get(i-insertionIndex));
                         }
                     }
 
                     assert currentSection != null;
-                    currentSection.addChild(new ListOption(name,listValue,Character.toString(separator)));
+                    ListOption newOption = new ListOption(name,listValue,separator);
+                    newOption.setDescription(comment);
+                    currentSection.addChild(newOption);
                 } else { // option has a simple value
                     assert currentSection != null;
 
@@ -129,16 +132,19 @@ public class IniAdapter implements ConfigAdapter {
                         Option targetOption = getLinkValue(value, outputRoot, currentSection);
                         if (targetOption instanceof ListOption) {
                             ListOption targetList = (ListOption)targetOption;
-                            currentSection.addChild(
-                                    new ListOption(name,targetList.getValue(),targetList.getSeparator()));
-                        } else {
+                            ListOption newOption = new ListOption(name,targetList.getValue(),targetList.getSeparator());
+                            newOption.setDescription(comment);
+                            currentSection.addChild(newOption);
+                        } else { // option is of a simple value
                             ScalarOption targetValue = new ScalarOption(name,((ScalarOption)targetOption).getValue());
                             targetValue.setBooleanValue(((ScalarOption)targetOption).getBooleanValue());
+                            targetValue.setDescription(comment);
                             currentSection.addChild(targetValue);
                         }
 
                     } else { // value is not a link
                         ScalarOption newOption = new ScalarOption(name, value);
+                        newOption.setDescription(comment);
 
                         // if the option can be interpreted as a boolean, set the boolean value
                         if (TRUE_REPRESENTATION.contains(value)) {
@@ -164,8 +170,75 @@ public class IniAdapter implements ConfigAdapter {
         return outputRoot;
 	}
 
-    private Option getLinkValue(String s, Root currentRoot, Section currentSection) throws ConfigurationException {
-        String linkTarget = s.substring(s.indexOf('{')+1,s.indexOf('}'));
+    /**
+     * Write config into an INI file
+     * Function goes through configuration on the input, checking its' correct format,
+     * and writes it into the output stream.
+     * @param configRoot The configuration structure
+     * @param output The output stream
+     * @throws ConfigurationException when the input configuration has a structure incompatible with the ini format
+     * @throws IOException when writing to the output stream fails
+     */
+    @Override
+    public void write(Root configRoot, OutputStream output) throws ConfigurationException, IOException {
+        StringBuilder outputString = new StringBuilder();
+
+        for (ConfigNode child : configRoot.getChildren()) {
+            if (isNotSection(child)) {
+                throw new ConfigurationException("Given configuration cannot be translated into an ini structure");
+            }
+
+            Section section = (Section) child;
+            outputString.append("[").append(section.getName()).append("]\n");
+
+            for (ConfigNode option : section.getChildren()) {
+
+                // First write the name and "=", then the value depending on the option type
+                outputString.append(option.getName()).append("=");
+
+                if (option instanceof ListOption) {
+
+                    ListOption listOption = (ListOption) option;
+                    for (String value : listOption.getValue()) {
+                        outputString.append(value).append(listOption.getSeparator());
+                    }
+                    // deleting the last list separator
+                    outputString.deleteCharAt(outputString.length()-1);
+
+                } else if (option instanceof ScalarOption){
+                    ScalarOption simpleOption = (ScalarOption) option;
+                    outputString.append(simpleOption.getValue());
+                } else  {
+                    throw new ConfigurationException(
+                            "Given configuration cannot be translated into ini structure: " +
+                                    "one of the sections has children that are not options");
+                }
+                 if (! option.getDescription().isEmpty()) {
+                    outputString.append("\t; ").append(option.getDescription());
+                }
+                outputString.append("\n");
+            }
+        }
+
+        output.write(outputString.toString().getBytes(Charset.forName(DEFAULT_CHARSET)));
+        output.flush();
+    }
+
+//////////////////////////////////// PRIVATE METHODS /////////////////////////////////////////////////////////////////
+
+    /**
+     * Get the real value of a link
+     * The link has to the part of the configuration that is already parsed. The
+     * so far parsed configuration is passed by the currentRoot and currentSection
+     * parameters
+     * @param linkString string representation of the link
+     * @param currentRoot part of the configuration file, already parsed
+     * @param currentSection section currently where parsing is in progress
+     * @return actual value of the link
+     * @throws ConfigurationException if the link address is invalid
+     */
+    private Option getLinkValue(String linkString, Root currentRoot, Section currentSection) throws ConfigurationException {
+        String linkTarget = linkString.substring(linkString.indexOf('{')+1,linkString.indexOf('}'));
         String targetSection = linkTarget.substring(0,linkTarget.indexOf('#'));
         String targetOption = linkTarget.substring(linkTarget.indexOf('#')+1);
 
@@ -182,6 +255,13 @@ public class IniAdapter implements ConfigAdapter {
                 "section not found: " + linkTarget);
     }
 
+    /**
+     * Extract the specified option from the section
+     * @param currentSection the section containing the option
+     * @param targetOption the option to be extracted
+     * @return the option
+     * @throws ConfigurationException if the option is not found in the section
+     */
     private Option getOption(Section currentSection, String targetOption) throws ConfigurationException {
         for (ConfigNode o : currentSection.getChildren()) {
             if (o.getName().equals(targetOption)) {
@@ -192,21 +272,34 @@ public class IniAdapter implements ConfigAdapter {
                 "option" +  targetOption + " not found in section " + currentSection.getName());
     }
 
-    private boolean isLink(String value) {
-        boolean valueHasDollarSign = indexOfUnescaped(value,'$') != -1;
-        boolean valueHasOpeningParenthesis = value.contains("{");
-        boolean valueHasClosingParenthesis = value.contains("}");
-        return valueHasDollarSign && valueHasOpeningParenthesis && valueHasClosingParenthesis;
+    /**
+     * Determine if the String representation of the link is a valid link
+     * A valid link has the form of .*${.*}
+     * @param potentialLink the String to be examined
+     * @return true if the String in the parameter satisfies the link definition, false otherwise
+     */
+    private boolean isLink(String potentialLink) {
+        int dollarCharPosition = indexOfUnescaped(potentialLink,'$');
+        boolean valueHasDollarChar = dollarCharPosition != -1;
+        boolean valueHasOpeningParenthesis = potentialLink.charAt(dollarCharPosition+1) == '{';
+        boolean valueHasClosingParenthesis = potentialLink.substring(dollarCharPosition+2).contains("}");
+        return valueHasDollarChar && valueHasOpeningParenthesis && valueHasClosingParenthesis;
     }
 
     /**
      * Parse a value into list
      * @param value string representation of a list value
      * @return value parsed into a list
+     * @throws ConfigurationException when one of the values is invalid
      */
-    private List<String> parseIntoList(String value) {
-        char separator = getListSeparator(value);
-        return new ArrayList<>(Arrays.asList(value.split(Character.toString(separator))));
+    private List<String> parseIntoList(String value) throws ConfigurationException {
+        String separator = getListSeparator(value);
+        ArrayList<String> valueList =  new ArrayList<>();
+        for (String singleValue : value.split(separator)) {
+            valueList.add(removeSurroundingWhitespace(singleValue));
+        }
+        return valueList;
+        //return new ArrayList<>(Arrays.asList(value.split(Character.toString(separator))));
     }
 
     /**
@@ -214,9 +307,9 @@ public class IniAdapter implements ConfigAdapter {
      * @param value the value in question
      * @return either ',' or ':', depending on what is present in the value
      */
-    private char getListSeparator(String value) {
+    private String getListSeparator(String value) {
         int indexOfComma = indexOfUnescaped(value,',');
-        return indexOfComma == -1 ? ':' : ',';
+        return indexOfComma == -1 ? ":" : ",";
     }
 
     /**
@@ -342,7 +435,7 @@ public class IniAdapter implements ConfigAdapter {
      * The string from which the section name should be extracted has to start with
      * the '[' character (a valid line containing a section starting label as described
      * by the INI documentation). The function returns only the valid section name.
-     * @param line line with a section name beggi
+     * @param line line with a section name beginning
      * @return valid section name
      * @throws ConfigurationException if the section name is not valid (e.g. all whitespace
      * or forbidden characters
@@ -395,57 +488,11 @@ public class IniAdapter implements ConfigAdapter {
     }
 
     /**
-	 * Write config into an INI file
-	 * Function goes through configuration on the input, checking its' correct format,
-     * and writes it into the output stream.
-	 * @param configRoot The configuration structure
-	 * @param output The output stream
-     * @throws ConfigurationException when the input configuration has a structure incompatible with the ini format
-     * @throws IOException when writing to the output stream fails
-	 */
-	@Override
-	public void write(Root configRoot, OutputStream output) throws ConfigurationException, IOException {
-        StringBuilder outputString = new StringBuilder();
-
-		for (ConfigNode child : configRoot.getChildren()) {
-            if (isNotSection(child)) {
-                throw new ConfigurationException("Given configuration cannot be translated into an ini structure");
-            }
-
-            Section section = (Section) child;
-            outputString.append("[").append(section.getName()).append("]\n");
-
-            for (ConfigNode option : section.getChildren()) {
-
-                // First write the name and "=", then the value depending on the option type
-                outputString.append(option.getName()).append("=");
-
-                if (option instanceof ListOption) {
-
-                    ListOption listOption = (ListOption) option;
-                    for (String value : listOption.getValue()) {
-                        outputString.append(value).append(listOption.getSeparator());
-                    }
-                    // deleting the last list separator
-                    outputString.deleteCharAt(outputString.length()-1);
-
-                } else if (option instanceof ScalarOption){
-                    ScalarOption simpleOption = (ScalarOption) option;
-                    outputString.append(simpleOption.getValue())
-                            .append("\n");
-                } else  {
-                    throw new ConfigurationException(
-                            "Given configuration cannot be translated into ini structure: " +
-                                    "one of the sections has children that are not options");
-                }
-                // TODO: print description as well?
-            }
-		}
-
-        output.write(outputString.toString().getBytes(Charset.forName(DEFAULT_CHARSET)));
-        output.flush();
-	}
-
+     * Determine if a ConfigNode is not a section
+     * Just another pretty wrapper
+     * @param node the node in question
+     * @return true if not a section, false otherwise
+     */
     private boolean isNotSection(ConfigNode node) {
         return !(node instanceof Section);
     }

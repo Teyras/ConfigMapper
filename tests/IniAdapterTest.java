@@ -2,6 +2,8 @@ import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.ConfigurationException;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 import cz.cuni.mff.ConfigMapper.ParsedBoolean;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -14,44 +16,69 @@ import static org.junit.Assert.assertNotNull;
 
 /**
  * Created by teyras on 29.3.16.
+ * Testing IniAdapter methods
  */
 public class IniAdapterTest {
-    private static final Root simpleConfig = new Root("", Arrays.asList(
-            new Section("sectionA", Arrays.asList(
-                    new ScalarOption("option1", "foo"),
-                    new ScalarOption("option2", "bar")
-            )),
-            new Section("sectionB", Arrays.asList(
-                    new ListOption("option3", Arrays.asList("baz", "baz", "baz"),":")
-            ))
-    ));
+    private static Root simpleConfig;
+
+    private static Root trickyConfig;
+
+    @BeforeClass
+    public static void prepareConfig() {
+        ScalarOption fooWithComment = new ScalarOption("option1", "foo");
+        fooWithComment.setDescription("this is foo");
+        simpleConfig = new Root("", Arrays.asList(
+                new Section("sectionA", Arrays.asList(
+                        fooWithComment,
+                        new ScalarOption("option2", "bar")
+                )),
+                new Section("sectionB", Arrays.asList(
+                        new ListOption("option3", Arrays.asList("baz", "baz", "baz"),":")
+                ))
+        ));
+
+        ScalarOption wierdFooWithComment = new ScalarOption("option1", "f\\;oo");
+        wierdFooWithComment.setDescription("comment");
+        trickyConfig = new Root("", Arrays.asList(
+                new Section("sectionA", Arrays.asList(
+                        wierdFooWithComment,
+                        new ScalarOption(" opti\\ on2  ", "bar")
+                )),
+                new Section("sectionB", Arrays.asList(
+                        new ListOption("option3", Arrays.asList("baz", "baz", "baz"),":"),
+                        new ListOption("option4", Arrays.asList("baz", "baz : baz"),",")
+                ))
+        ));
+    }
 
     private static byte[] simpleFileContent = (String.join("\n",
             "[sectionA]",
-            "option1=foo",
+            "option1=foo\t; this is foo",
             "option2=bar",
             "[sectionB]",
-            "option3=baz:baz:baz"
-    )).getBytes();
-
-    private static byte[] booleanTestFileContent = (String.join("\n",
-            "[sectionA]",
-            "optionTrue1=1",
-            "optionTrue2=t",
-            "optionTrue3=enabled",
-            "optionFalse1=0",
-            "optionFalse2=f",
-            "optionFalse3=disabled"
+            "option3=baz:baz:baz",
+            ""
     )).getBytes();
 
     private static byte[] trickyFileContent = (String.join("\n",
             "[sectionA]",
-            "option1=f\\;oo ; comment",
-            ";only comment on this line ; wow",
+            "option1=f\\;oo\t; comment",
+            ";only comment on this line\t; wow",
             " \\ opti\\ on2\\ \\  =bar",
             "[sectionB]",
             "option3=baz:baz:baz",
-            "option4=baz, baz : baz"
+            "option4=baz, baz : baz",
+            ""
+    )).getBytes();
+
+    private static byte[] trickyFileContentWithoutLineComment = (String.join("\n",
+            "[sectionA]",
+            "option1=f\\;oo\t; comment",
+            " \\ opti\\ on2\\ \\  =bar",
+            "[sectionB]",
+            "option3=baz:baz:baz",
+            "option4=baz, baz : baz",
+            ""
     )).getBytes();
 
 	@Test
@@ -99,6 +126,18 @@ public class IniAdapterTest {
     }
 
     @Test
+    public void readTricky() throws Exception {
+        byte[] input = trickyFileContent;
+
+        Root expectedConfig = trickyConfig;
+
+        IniAdapter adapter = new IniAdapter();
+        Root config = adapter.read(new ByteArrayInputStream(input));
+
+        assertEquals(expectedConfig, config);
+    }
+
+    @Test
     public void extractSectionNameTest() throws Exception {
         IniAdapter adapter = new IniAdapter();
 
@@ -116,6 +155,15 @@ public class IniAdapterTest {
         adapter.write(simpleConfig,outputStream);
         assertArrayEquals(simpleFileContent,outputStream.toByteArray());
 	}
+
+    @Test
+    public void writeTricky() throws Exception {
+        IniAdapter adapter = new IniAdapter();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+        adapter.write(trickyConfig,outputStream);
+        assertArrayEquals(trickyFileContentWithoutLineComment,outputStream.toByteArray());
+    }
 
     @Test(expected = ConfigurationException.class)
     public void writeFailWrongStructure() throws Exception {
