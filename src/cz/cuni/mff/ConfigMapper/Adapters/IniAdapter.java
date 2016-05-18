@@ -190,31 +190,38 @@ public final class IniAdapter implements ConfigAdapter {
 
             Section section = (Section) child;
             outputString.append("[").append(section.getName()).append("]\n");
+            if (!section.getDescription().isEmpty()) {
+                outputString.append(";").append(section.getDescription());
+            }
 
             for (ConfigNode option : section.getChildren()) {
 
                 // First write the name and "=", then the value depending on the option type
-                outputString.append(option.getName()).append("=");
+                outputString.append(escapeSpaces(option.getName())).append("=");
 
                 if (option instanceof ListOption) {
 
                     ListOption listOption = (ListOption) option;
                     for (String value : listOption.getValue()) {
-                        outputString.append(value).append(listOption.getSeparator());
+                        String outValue = escapeSpaces(value);
+                        outValue = escapeSeparator(outValue,listOption.getSeparator());
+                        outputString.append(outValue).append(listOption.getSeparator());
                     }
                     // deleting the last list separator
                     outputString.deleteCharAt(outputString.length()-1);
 
                 } else if (option instanceof ScalarOption){
+
                     ScalarOption simpleOption = (ScalarOption) option;
-                    outputString.append(simpleOption.getValue());
+                    outputString.append(escapeSpaces(simpleOption.getValue()));
+
                 } else  {
                     throw new ConfigurationException(
                             "Given configuration cannot be translated into ini structure: " +
                                     "one of the sections has children that are not options");
                 }
                  if (! option.getDescription().isEmpty()) {
-                    outputString.append("\t; ").append(option.getDescription());
+                    outputString.append("\t;").append(option.getDescription());
                 }
                 outputString.append("\n");
             }
@@ -421,16 +428,6 @@ public final class IniAdapter implements ConfigAdapter {
     }
 
     /**
-     * Public method invoking a private mechanism of extracting section name from a line
-     * @param s line
-     * @return section name
-     */
-    public String extractSectionNameTest(String s) throws ConfigurationException {
-        //TODO: delete this once finished with coding?
-        return extractSectionName(s);
-    }
-
-    /**
      * Extract the section name
      * The string from which the section name should be extracted has to start with
      * the '[' character (a valid line containing a section starting label as described
@@ -485,6 +482,48 @@ public final class IniAdapter implements ConfigAdapter {
      */
     private boolean isDescribingSection(String line) {
         return line.charAt(0) == '[';
+    }
+
+    private String escapeSeparator(String outValue, String separator) {
+        return outValue.replaceAll(separator,String.format("\\%s",separator));
+    }
+
+    /**
+     * Cycle through value String and count leading and trailing spaces.
+     * Once we have the counts, we trim the value and add "\ " in front for every
+     * leading space, and the same for the trailing spaces. This will also
+     * convert any surrounding whitespace to space.
+     * @param value
+     * @return value with escaped trailing and leading spaces
+     */
+    private String escapeSpaces(String value) {
+        // count leading and trailing spaces
+        boolean valueStarted = false;
+        int prefixSpaces = 0;
+        int suffixSpaces = 0;
+        for (int i = 0; i < value.length(); ++i) {
+            char currentChar = value.charAt(i);
+            if (Character.isWhitespace(currentChar)) {
+                if (valueStarted) {
+                    ++suffixSpaces;
+                } else {
+                    ++prefixSpaces;
+                }
+            } else {
+                valueStarted = true;
+                suffixSpaces = 0;
+            }
+        }
+
+        // return the whitespaces as escaped spaces
+        StringBuilder outputValue = new StringBuilder(value.trim());
+        for (int i = 0; i<prefixSpaces; ++i) {
+            outputValue.insert(0,"\\ ");
+        }
+        for (int i = 0; i<suffixSpaces; ++i) {
+            outputValue.append("\\ ");
+        }
+        return outputValue.toString();
     }
 
     /**
