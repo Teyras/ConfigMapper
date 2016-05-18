@@ -82,9 +82,9 @@ public class ConfigMapper {
 		// Traverse the configuration tree and map it onto the newly created instance
 		for (ConfigNode node : config.getChildren()) {
 			if (node instanceof Section) {
-				mapSection((Section) node, new Path(node.getName()), context);
+				loadSection((Section) node, new Path(node.getName()), context);
 			} else if (node instanceof Option) {
-				mapOption((Option) node, new Path(node.getName()), context);
+				loadOption((Option) node, new Path(node.getName()), context);
 			} else {
 				throw new MappingException("Unsupported structure of the configuration tree");
 			}
@@ -532,10 +532,10 @@ public class ConfigMapper {
 	 * @param context The mapping context
 	 * @throws MappingException When the section is ill-formed
 	 */
-	private void mapSection(Section section, Path path, Context context) throws MappingException {
+	private void loadSection(Section section, Path path, Context context) throws MappingException {
 		for (ConfigNode node : section.getChildren()) {
 			if (node instanceof Option) {
-				mapOption((Option) node, path.add(node.getName()), context);
+				loadOption((Option) node, path.add(node.getName()), context);
 			} else {
 				throw new MappingException("Unsupported configuration structure");
 			}
@@ -550,7 +550,7 @@ public class ConfigMapper {
 	 * @throws MappingException When the option value is not compatible with its corresponding field
 	 *                          or when the option field is undeclared and strict {@link LoadingMode} is used
 	 */
-	private void mapOption(Option option, Path path, Context context) throws MappingException {
+	private void loadOption(Option option, Path path, Context context) throws MappingException {
 		Destination destination = context.options.get(path);
 
 		// Handle the case of an undeclared option
@@ -562,7 +562,7 @@ public class ConfigMapper {
 				));
 			}
 
-			mapUndeclaredOption(option, path, context);
+			loadUndeclaredOption(option, path, context);
 			return;
 		}
 
@@ -572,7 +572,7 @@ public class ConfigMapper {
 		field.setAccessible(true);
 
 		try {
-			mapOptionValue(option, destination);
+			loadOptionValue(option, destination);
 		} catch (IllegalArgumentException e) {
 			throw new MappingException(String.format(
 				"Invalid value supplied for field %s of type %s",
@@ -593,7 +593,7 @@ public class ConfigMapper {
 	 * @throws IllegalAccessException
 	 * @throws MappingException
 	 */
-	private void mapOptionValue(Option option, Destination destination) throws IllegalAccessException, MappingException {
+	private void loadOptionValue(Option option, Destination destination) throws IllegalAccessException, MappingException {
 		if (option instanceof ListOption) {
 			destination.set(new ArrayList<>(((ListOption) option).getValue()));
 			return;
@@ -656,7 +656,7 @@ public class ConfigMapper {
 	 * @param path path to the option
 	 * @param context mapping context
 	 */
-	private void mapUndeclaredOption(Option option, Path path, Context context) {
+	private void loadUndeclaredOption(Option option, Path path, Context context) {
 		if (option instanceof ScalarOption) {
 			context.undeclaredOptions.put(
 				path.toString(),
