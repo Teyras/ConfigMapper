@@ -1,5 +1,7 @@
 package cz.cuni.mff.ConfigMapper.Nodes;
 
+import cz.cuni.mff.ConfigMapper.ConfigurationException;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -30,7 +32,14 @@ public class Section extends ConfigNode {
 		return children;
 	}
 
-	public boolean addChild(ConfigNode newChild){
+	public boolean addChild(ConfigNode newChild) throws ConfigurationException{
+		String newChildsName = newChild.getName();
+		for (ConfigNode child : children) {
+			if (child.getName().equals(newChildsName)) {
+				throw new ConfigurationException(
+						String.format("Trying to add child %s, which is already present", newChildsName));
+			}
+		}
         return children.add(newChild);
     }
 
