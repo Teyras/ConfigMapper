@@ -24,7 +24,7 @@ public class ConfigMapperSaveRelaxedTest {
 		object.options.put("section2#baz", "gah");
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section1", Collections.singletonList(

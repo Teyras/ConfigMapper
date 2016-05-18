@@ -131,4 +131,31 @@ public class ConfigFacadeTest {
 
 		assertEquals(expected, output.toString());
 	}
+
+	static class DefaultValueMappedClass {
+		@ConfigOption(section = "section", optional = true)
+		int option = 100;
+	}
+
+	@Test
+	public void saveDefaultValueExplicit() throws Exception {
+		StringInputStream input = new StringInputStream(
+			"[section]",
+			"option = 100"
+		);
+
+		ConfigFacade facade = new ConfigFacade(new IniAdapter());
+		DefaultValueMappedClass object = facade.load(input, DefaultValueMappedClass.class, LoadingMode.STRICT);
+
+		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		facade.save(object, output);
+
+		String expected = String.join("\n", Arrays.asList(
+			"[section]",
+			"option=100",
+			""
+		));
+
+		assertEquals(expected, output.toString());
+	}
 }

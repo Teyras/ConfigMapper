@@ -31,7 +31,7 @@ public class ConfigMapperSaveEnumTest {
 		object.option2 = WithEnum.OptionEnum.ON;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Arrays.asList(
@@ -67,7 +67,7 @@ public class ConfigMapperSaveEnumTest {
 		object.option2 = WithChainedEnum.OptionEnum.OFF;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Arrays.asList(

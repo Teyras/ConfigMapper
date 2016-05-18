@@ -326,11 +326,12 @@ public class ConfigMapper {
 	 * The mapping information is automatically extracted from the object's class.
 	 *
 	 * @param object The source instance
+	 * @param originalConfig The configuration used to load the object now being saved
 	 * @param keepDefaults Should the result contain default values?
 	 * @throws MappingException When the mapped object is invalid
 	 * @return The new configuration structure
 	 */
-	public Root save(Object object, boolean keepDefaults) throws MappingException {
+	public Root save(Object object, Root originalConfig, boolean keepDefaults) throws MappingException {
 		// Load metadata from the class
 		Context context = new Context();
 		extractMappingData(object, context, new Path());
@@ -403,18 +404,34 @@ public class ConfigMapper {
 				continue;
 			}
 
-			// If an option is optional and equal to its default value, skip it
-			// (unless keepDefaults is set)
-			if (!keepDefaults && defaultContext.options.containsKey(path)) {
-				Destination defaultDestination = defaultContext.options.get(path);
-				Object defaultValue = defaultDestination.get();
-
-				if (defaultDestination.isOptional && Objects.equals(value, defaultValue)) {
-					continue;
+			Option originalOption = null;
+			if (originalConfig != null) {
+				ConfigNode node = getNode(originalConfig, path);
+				if (node instanceof Option) {
+					originalOption = (Option) node;
 				}
 			}
 
 			Option node = storeOptionValue(path.lastComponent(), destination.field, value);
+
+			if (originalOption != null && !originalOption.getDescription().isEmpty()) {
+				node.setDescription(originalOption.getDescription());
+			}
+
+			// If an option is optional and equal to its default value, skip it
+			// (unless keepDefaults is set or it was in the original config)
+			if (!keepDefaults && defaultContext.options.containsKey(path)) {
+				Destination defaultDestination = defaultContext.options.get(path);
+				Object defaultValue = defaultDestination.get();
+
+				boolean defaultEqual = Objects.equals(value, defaultValue);
+				boolean originalEqual = Objects.equals(node, originalOption);
+
+				if (!originalEqual && defaultDestination.isOptional && defaultEqual) {
+					continue;
+				}
+			}
+
 			items.add(new ConfigItem(path, node));
 		}
 
@@ -531,7 +548,7 @@ public class ConfigMapper {
 	public Root saveDefaults(Class<?> cls) throws MappingException {
 		Object object = constructObject(cls);
 		constructSections(object, true);
-		return save(object, true);
+		return save(object, null, true);
 	}
 
 	/**
@@ -816,12 +833,12 @@ public class ConfigMapper {
 	}
 
 	/**
-	 * Check if a section (given by path) is present in a configuration
-	 * @param config the configuration to check
-	 * @param path path to the section
-	 * @return true if there is a section with given path, false otherwise
+	 * Find a node with given path in a configuration structure
+	 * @param config configuration structure to search in
+	 * @param path the path of required node
+	 * @return the node or null
 	 */
-	private boolean isSectionPresent(Root config, Path path) {
+	private ConfigNode getNode(Root config, Path path) {
 		Section cursor = config;
 
 		// Traverse all path components
@@ -835,20 +852,29 @@ public class ConfigMapper {
 
 			if (!node.isPresent()) {
 				// Given node was not found in the configuration
-				return false;
+				return null;
 			}
 
-			if (!(node.get() instanceof Section)) {
-				// The node is not a section
-				return false;
+			if (i == path.size() - 1) {
+				// Last iteration - return the node
+				return node.get();
 			}
 
 			// Go deeper into the configuration structure
 			cursor = (Section) node.get();
 		}
 
-		// All components of the path were found and they are sections
-		return true;
+		return null;
+	}
+
+	/**
+	 * Check if a section (given by path) is present in a configuration
+	 * @param config the configuration to check
+	 * @param path path to the section
+	 * @return true if there is a section with given path, false otherwise
+	 */
+	private boolean isSectionPresent(Root config, Path path) {
+		return getNode(config, path) instanceof Section;
 	}
 }
 

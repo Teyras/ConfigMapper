@@ -4,6 +4,8 @@ import cz.cuni.mff.ConfigMapper.Adapters.ConfigAdapter;
 import cz.cuni.mff.ConfigMapper.Nodes.Root;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Provides a simple API for the configuration mapping functionality
@@ -18,6 +20,11 @@ public class ConfigFacade {
 	 * The configuration mapper
 	 */
 	private final ConfigMapper mapper;
+
+	/**
+	 * Stores the configuration structures used for loading objects
+	 */
+	private final Map<Object, Root> originalConfigs = new HashMap<>();
 
 	/**
 	 * @param adapter The adapter used to read and write configuration files
@@ -37,7 +44,10 @@ public class ConfigFacade {
 	 * @throws ConfigurationException when the configuration file is malformed
 	 */
 	public <MappedObject> MappedObject load(InputStream input, Class<MappedObject> cls, LoadingMode mode) throws MappingException, ConfigurationException {
-		return mapper.load(adapter.read(input), cls, mode);
+		Root config = adapter.read(input);
+		MappedObject object = mapper.load(config, cls, mode);
+		originalConfigs.put(object, config);
+		return object;
 	}
 
 	/**
@@ -86,7 +96,8 @@ public class ConfigFacade {
 	 * @throws ConfigurationException When the file cannot be saved in the format supported by the adapter
 	 */
 	public <MappedObject> void save(MappedObject object, OutputStream output) throws MappingException, ConfigurationException, IOException {
-		adapter.write(mapper.save(object, false), output);
+		Root config = mapper.save(object, originalConfigs.get(object), false);
+		adapter.write(config, output);
 	}
 
 	/**

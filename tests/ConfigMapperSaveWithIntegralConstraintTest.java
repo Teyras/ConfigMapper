@@ -24,7 +24,7 @@ public class ConfigMapperSaveWithIntegralConstraintTest {
 		object.option = -100;
 
 		ConfigMapper mapper = new ConfigMapper();
-		mapper.save(object, false);
+		mapper.save(object, null, false);
 	}
 
 	@Test(expected = MappingException.class)
@@ -33,7 +33,7 @@ public class ConfigMapperSaveWithIntegralConstraintTest {
 		object.option = 100;
 
 		ConfigMapper mapper = new ConfigMapper();
-		mapper.save(object, false);
+		mapper.save(object, null, false);
 	}
 
 	@Test()
@@ -42,7 +42,7 @@ public class ConfigMapperSaveWithIntegralConstraintTest {
 		object.option = 1;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Arrays.asList(

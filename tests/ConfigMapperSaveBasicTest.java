@@ -30,7 +30,7 @@ public class ConfigMapperSaveBasicTest {
 		object.optionInt = 10;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		ScalarOption optionString = new ScalarOption("optionString", "foo");
 		optionString.setDescription("Lorem Ipsum");
@@ -52,7 +52,7 @@ public class ConfigMapperSaveBasicTest {
 		object.optionInt = 10;
 
 		ConfigMapper mapper = new ConfigMapper();
-		mapper.save(object, false);
+		mapper.save(object, null, false);
 	}
 
 	static class StructuredMappedClass {
@@ -76,7 +76,7 @@ public class ConfigMapperSaveBasicTest {
 		object.section1.optionInt = 10;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Section section = new Section("section1", Arrays.asList(
 			new ScalarOption("optionStringFoo", "foo"),
@@ -97,7 +97,7 @@ public class ConfigMapperSaveBasicTest {
 		object.section1 = null;
 
 		ConfigMapper mapper = new ConfigMapper();
-		mapper.save(object, false);
+		mapper.save(object, null, false);
 	}
 
 	static class OptionalOptionMappedClass {
@@ -111,7 +111,7 @@ public class ConfigMapperSaveBasicTest {
 		object.option = null;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Collections.emptyList());
 
@@ -134,7 +134,7 @@ public class ConfigMapperSaveBasicTest {
 		object.section = null;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Collections.emptyList());
 
@@ -151,7 +151,7 @@ public class ConfigMapperSaveBasicTest {
 		DefaultValuesMappedClass object = new DefaultValuesMappedClass();
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Collections.emptyList());
 		assertEquals(expected, config);
@@ -163,7 +163,7 @@ public class ConfigMapperSaveBasicTest {
 		object.option = 123;
 
 		ConfigMapper mapper = new ConfigMapper();
-		Root config = mapper.save(object, false);
+		Root config = mapper.save(object, null, false);
 
 		Root expected = new Root("", Arrays.asList(
 			new Section("section", Arrays.asList(
