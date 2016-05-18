@@ -397,41 +397,7 @@ public class ConfigMapper {
 					continue;
 				}
 
-				if (value instanceof List) {
-					node = new ListOption(
-						path.lastComponent(),
-						(List<String>) value
-					);
-				} else if (destination.field.getType().isEnum()) {
-					String stringValue = value.toString();
-
-					for (ConstantAlias alias : destination.field.getAnnotationsByType(ConstantAlias.class)) {
-						if (alias.constant().equals(stringValue)) {
-							stringValue = alias.alias();
-							break;
-						}
-					}
-
-					node = new ScalarOption(
-						path.lastComponent(),
-						stringValue
-					);
-				} else {
-					String stringValue = value.toString();
-
-					checkIntegralConstraint(destination.field, stringValue);
-					checkDecimalConstraint(destination.field, stringValue);
-
-					node = new ScalarOption(
-						path.lastComponent(),
-						stringValue
-					);
-				}
-
-				ConfigOption optionAnnotation = destination.field.getAnnotation(ConfigOption.class);
-				if (!optionAnnotation.description().isEmpty()) {
-					node.setDescription(optionAnnotation.description());
-				}
+				node = storeOptionValue(path.lastComponent(), destination.field, value);
 			} catch (IllegalAccessException e) {
 				throw new MappingException(String.format(
 					"Field %s of class %s is not accessible",
@@ -507,6 +473,47 @@ public class ConfigMapper {
 	}
 
 	/**
+	 * Create a new option node with given value
+	 * @param name name of the option
+	 * @param field the field where the option was stored
+	 * @param value the value of the option
+	 * @return a new option node
+	 * @throws MappingException when a constraint fails
+	 */
+	private Option storeOptionValue(String name, Field field, Object value) throws MappingException {
+		Option node;
+
+		if (value instanceof List) {
+			node = new ListOption(name, (List<String>) value);
+		} else if (field.getType().isEnum()) {
+			String stringValue = value.toString();
+
+			for (ConstantAlias alias : field.getAnnotationsByType(ConstantAlias.class)) {
+				if (alias.constant().equals(stringValue)) {
+					stringValue = alias.alias();
+					break;
+				}
+			}
+
+			node = new ScalarOption(name, stringValue);
+		} else {
+			String stringValue = value.toString();
+
+			checkIntegralConstraint(field, stringValue);
+			checkDecimalConstraint(field, stringValue);
+
+			node = new ScalarOption(name, stringValue);
+		}
+
+		ConfigOption optionAnnotation = field.getAnnotation(ConfigOption.class);
+		if (!optionAnnotation.description().isEmpty()) {
+			node.setDescription(optionAnnotation.description());
+		}
+
+		return node;
+	}
+
+	/**
 	 * Save the default values for given class into a new ConfigNode structure
 	 * @param cls the class to save
 	 * @return a newly created configuration structure
@@ -517,7 +524,6 @@ public class ConfigMapper {
 		constructSections(object, true);
 		return save(object);
 	}
-
 
 	/**
 	 * Map a section of the configuration onto an instance of the mapped class.
@@ -547,6 +553,7 @@ public class ConfigMapper {
 	private void mapOption(Option option, Path path, Context context) throws MappingException {
 		Destination destination = context.options.get(path);
 
+		// Handle the case of an undeclared option
 		if (destination == null) {
 			if (context.mode != LoadingMode.RELAXED) {
 				throw new MappingException(String.format(
@@ -555,19 +562,7 @@ public class ConfigMapper {
 				));
 			}
 
-			if (option instanceof ScalarOption) {
-				context.undeclaredOptions.put(
-					path.toString(),
-					((ScalarOption) option).getValue()
-				);
-			} else if (option instanceof ListOption) {
-				ListOption listOption = (ListOption) option;
-				context.undeclaredOptions.put(
-					path.toString(),
-					String.join(listOption.getSeparator(), listOption.getValue())
-				);
-			}
-
+			mapUndeclaredOption(option, path, context);
 			return;
 		}
 
@@ -577,72 +572,135 @@ public class ConfigMapper {
 		field.setAccessible(true);
 
 		try {
-			if (option instanceof ListOption) {
-				destination.set(new ArrayList<>(((ListOption) option).getValue()));
-			} else if (option instanceof ScalarOption) {
-				String value = ((ScalarOption) option).getValue();
-
-				checkIntegralConstraint(field, value);
-				checkDecimalConstraint(field, value);
-
-				if (field.getType() == String.class) {
-					destination.set(value);
-				}
-
-				if (field.getType() == int.class || field.getType() == Integer.class) {
-					destination.set(Integer.parseInt(value));
-				}
-
-				if (field.getType() == float.class || field.getType() == Float.class) {
-					destination.set(Float.parseFloat(value));
-				}
-
-				if (field.getType() == double.class || field.getType() == Double.class) {
-					destination.set(Double.parseDouble(value));
-				}
-
-				if (field.getType() == boolean.class || field.getType() == Boolean.class) {
-					ParsedBoolean booleanValue = ((ScalarOption) option).getBooleanValue();
-					if (booleanValue == ParsedBoolean.NOT_BOOLEAN) {
-						throw new MappingException(String.format(
-							"Option %s requires a boolean value",
-							path
-						));
-					}
-
-					destination.set(booleanValue == ParsedBoolean.TRUE);
-				}
-
-				if (field.getType().isEnum()) {
-					for (ConstantAlias alias : field.getAnnotationsByType(ConstantAlias.class)) {
-						if (alias.alias().equals(value)) {
-							value = alias.constant();
-							break;
-						}
-					}
-
-					for (Object constant : field.getType().getEnumConstants()) {
-						if (constant.toString().equals(value)) {
-							destination.set(constant);
-							break;
-						}
-					}
-
-					if (!destination.isSet) {
-						throw new MappingException(String.format(
-							"Undefined constant %s",
-							value
-						));
-					}
-				}
-			}
+			mapOptionValue(option, destination);
 		} catch (IllegalArgumentException e) {
-			throw new MappingException("Incompatible types");
+			throw new MappingException(String.format(
+				"Invalid value supplied for field %s of type %s",
+				field.getName(),
+				field.getType().getName()
+			));
 		} catch (IllegalAccessException e) {
 			assert false;
 		}
 
 		field.setAccessible(fieldAccessible);
+	}
+
+	/**
+	 * Map an option to the corresponding destination
+	 * @param option the option to be mapped
+	 * @param destination where the option value shall be stored
+	 * @throws IllegalAccessException
+	 * @throws MappingException
+	 */
+	private void mapOptionValue(Option option, Destination destination) throws IllegalAccessException, MappingException {
+		if (option instanceof ListOption) {
+			destination.set(new ArrayList<>(((ListOption) option).getValue()));
+			return;
+		}
+
+		if (option instanceof ScalarOption) {
+			Field field = destination.field;
+			String value = ((ScalarOption) option).getValue();
+
+			checkIntegralConstraint(field, value);
+			checkDecimalConstraint(field, value);
+
+			if (field.getType() == String.class) {
+				destination.set(value);
+			}
+
+			if (field.getType() == int.class || field.getType() == Integer.class) {
+				destination.set(Integer.parseInt(value));
+			}
+
+			if (field.getType() == float.class || field.getType() == Float.class) {
+				destination.set(Float.parseFloat(value));
+			}
+
+			if (field.getType() == double.class || field.getType() == Double.class) {
+				destination.set(Double.parseDouble(value));
+			}
+
+			if (field.getType() == boolean.class || field.getType() == Boolean.class) {
+				ParsedBoolean booleanValue = ((ScalarOption) option).getBooleanValue();
+				if (booleanValue == ParsedBoolean.NOT_BOOLEAN) {
+					throw new MappingException(String.format(
+						"Field %s requires a boolean value",
+						field.getName()
+					));
+				}
+
+				destination.set(booleanValue == ParsedBoolean.TRUE);
+			}
+
+			if (field.getType().isEnum()) {
+				value = resolveEnumConstantAlias(field, value);
+				Object enumConstant = getEnumConstantByName(field.getType(), value);
+
+				if (enumConstant == null) {
+					throw new MappingException(String.format(
+						"Undefined constant %s",
+						value
+					));
+				}
+
+				destination.set(enumConstant);
+			}
+		}
+	}
+
+	/**
+	 * Store an option in the undeclared option container
+	 * @param option the option to store
+	 * @param path path to the option
+	 * @param context mapping context
+	 */
+	private void mapUndeclaredOption(Option option, Path path, Context context) {
+		if (option instanceof ScalarOption) {
+			context.undeclaredOptions.put(
+				path.toString(),
+				((ScalarOption) option).getValue()
+			);
+		} else if (option instanceof ListOption) {
+			ListOption listOption = (ListOption) option;
+			context.undeclaredOptions.put(
+				path.toString(),
+				String.join(listOption.getSeparator(), listOption.getValue())
+			);
+		}
+	}
+
+	/**
+	 * For given enum class and string, find an enum constant with name equal to the string
+	 * @param cls an enum class
+	 * @param value the string to search for
+	 * @return enum constant with name equal to given string or null
+	 */
+	private Object getEnumConstantByName(Class<?> cls, String value) {
+		for (Object constant : cls.getEnumConstants()) {
+			if (constant.toString().equals(value)) {
+				return constant;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * If given string is an alias of another enum constant, return the string representation of that constant
+	 * @param field the field that contains given string
+	 * @param value the string value
+	 * @return the resolved constant name
+	 */
+	private String resolveEnumConstantAlias(Field field, String value) {
+		for (ConstantAlias alias : field.getAnnotationsByType(ConstantAlias.class)) {
+			if (alias.alias().equals(value)) {
+				return alias.constant();
+			}
+		}
+
+		return value;
 	}
 
 	/**
