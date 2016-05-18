@@ -89,10 +89,10 @@ public class ConfigFacadeTest {
 			public String option = "A default value";
 		}
 
-		@ConfigSection(description = "Section 1")
+		@ConfigSection(description = "Section A")
 		FooSection sectionA;
 
-		@ConfigSection(description = "Section 2")
+		@ConfigSection(description = "Section B")
 		FooSection sectionB;
 	}
 
@@ -113,13 +113,22 @@ public class ConfigFacadeTest {
 	}
 
 	@Test
-	@Ignore
 	public void saveDefaultsIni() throws Exception {
 		ConfigFacade facade = new ConfigFacade(new IniAdapter());
 
 		ByteArrayOutputStream output = new ByteArrayOutputStream();
 		facade.saveDefaults(NestedSectionMappedClass.class, output);
 
-		String out = output.toString();
+		String expected = String.join("\n", Arrays.asList(
+			"[sectionA]",
+			"; Section A",
+			"option=A default value ; An option",
+			"[sectionB]",
+			"; Section B",
+			"option=A default value ; An option",
+			""
+		));
+
+		assertEquals(expected, output.toString());
 	}
 }
