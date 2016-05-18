@@ -191,7 +191,7 @@ public final class IniAdapter implements ConfigAdapter {
             Section section = (Section) child;
             outputString.append("[").append(section.getName()).append("]\n");
             if (!section.getDescription().isEmpty()) {
-                outputString.append(";").append(section.getDescription());
+                outputString.append("; ").append(section.getDescription()).append("\n");
             }
 
             for (ConfigNode option : section.getChildren()) {
@@ -484,8 +484,31 @@ public final class IniAdapter implements ConfigAdapter {
         return line.charAt(0) == '[';
     }
 
+    /**
+     *
+     * @param outValue
+     * @param separator
+     * @return
+     */
     private String escapeSeparator(String outValue, String separator) {
-        return outValue.replaceAll(separator,String.format("\\%s",separator));
+        if (outValue.contains(separator)) {
+            // cycle through the string and find all separators to be escaped
+            ArrayList<Integer> occurrences = new ArrayList<>();
+            int index = outValue.indexOf(separator);
+            while (index >= 0) {
+                occurrences.add(index);
+                index = outValue.indexOf(separator, index + 1);
+            }
+
+            // escape the separators
+            StringBuilder escapedOutValue = new StringBuilder(outValue);
+            for (int i = occurrences.size() - 1 ; i >= 0; --i) {
+                escapedOutValue.insert(occurrences.get(i),"\\");
+            }
+            return escapedOutValue.toString();
+        } else {
+            return outValue;
+        }
     }
 
     /**
