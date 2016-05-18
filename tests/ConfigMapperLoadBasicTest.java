@@ -10,9 +10,6 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by teyras on 29.3.16.
- */
 public class ConfigMapperLoadBasicTest {
 	static class BasicMappedClass {
 		@ConfigOption(section = "section1")

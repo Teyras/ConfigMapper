@@ -13,7 +13,6 @@ import java.util.Arrays;
 import static org.junit.Assert.*;
 
 /**
- * Created by teyras on 29.3.16.
  * Testing IniAdapter methods
  */
 public class IniAdapterTest {

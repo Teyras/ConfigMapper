@@ -21,9 +21,6 @@ class StringInputStream extends ByteArrayInputStream {
 	}
 }
 
-/**
- * Created by teyras on 30.3.16.
- */
 public class ConfigFacadeTest {
 	static class BasicMappedClass {
 		@ConfigOption(section = "section1")

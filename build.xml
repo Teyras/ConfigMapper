@@ -142,7 +142,7 @@
     </javac>
 
     <copy todir="${configmapper.testoutput.dir}">
-      <fileset dir="${module.configmapper.basedir}/ConfigMapper/tests">
+      <fileset dir="${module.configmapper.basedir}/tests">
         <patternset refid="compiler.resources"/>
         <type type="file"/>
       </fileset>
@@ -178,6 +178,8 @@
       -->
 
 
+	<classpath location="${module.configmapper.basedir}/lib/junit.jar" />
+	<classpath location="${module.configmapper.basedir}/lib/hamcrest-core.jar" />
       <classpath>
         <pathelement path="${configmapper.output.dir}" />
         <pathelement path="${configmapper.testoutput.dir}" />

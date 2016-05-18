@@ -11,9 +11,6 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by teyras on 9.5.16.
- */
 public class ConfigMapperSaveBasicTest {
 	static class BasicMappedClass {
 		@ConfigOption(section = "section1", description = "Lorem Ipsum")
