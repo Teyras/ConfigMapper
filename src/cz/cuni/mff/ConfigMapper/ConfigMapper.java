@@ -35,7 +35,7 @@ public class ConfigMapper {
 		context.mode = mode;
 
 		// Map available configuration option names to reflections of corresponding fields
-		extractOptions(cls, instance, context, new Path());
+		extractOptions(instance, context, new Path());
 
 		if (mode == LoadingMode.RELAXED && context.undeclaredOptions == null) {
 			throw new MappingException(String.format(
@@ -162,14 +162,15 @@ public class ConfigMapper {
 
 	/**
 	 * Extract fields annotated as options from given class and store them in the mapping context.
-	 * @param cls class to be extracted
 	 * @param instance an instance of the class to be linked in the options field of the context
 	 * @param context the mapping context where extracted options will be stored
 	 * @param path path where we currently are in the configuration tree
 	 *             (important for recursive calls on section fields)
 	 * @throws MappingException
 	 */
-	private void extractOptions(Class<?> cls, Object instance, Context context, Path path) throws MappingException {
+	private void extractOptions(Object instance, Context context, Path path) throws MappingException {
+		Class<?> cls = instance.getClass();
+
 		for (Field field : cls.getDeclaredFields()) {
 			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
 
@@ -245,7 +246,7 @@ public class ConfigMapper {
 					Object sectionInstance = field.get(instance);
 
 					if (sectionInstance != null) {
-						extractOptions(sectionCls, sectionInstance, context, sectionPath);
+						extractOptions(sectionInstance, context, sectionPath);
 					}
 				} catch (IllegalAccessException e) {
 					assert false;
@@ -268,7 +269,7 @@ public class ConfigMapper {
 
 		// Load metadata from the class
 		Context context = new Context();
-		extractOptions(cls, object, context, new Path());
+		extractOptions(object, context, new Path());
 
 		// Check if all non-optional sections are present
 		for (Path path : context.sections.keySet()) {
