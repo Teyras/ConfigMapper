@@ -7,7 +7,7 @@ public abstract class Option extends ConfigNode {
 	/**
 	 * @param name the name of the option
 	 */
-	public Option(String name) {
+	Option(String name) {
 		super(name);
 	}
 }

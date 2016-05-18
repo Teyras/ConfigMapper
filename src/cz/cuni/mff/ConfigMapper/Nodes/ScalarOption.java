@@ -8,7 +8,7 @@ import java.util.Objects;
  * Represents a scalar option value in the configuration file.
  * The value is kept in string form.
  */
-public class ScalarOption extends Option {
+public final class ScalarOption extends Option {
 
 	/**
 	 * The value of the option

@@ -6,7 +6,7 @@ import java.util.Objects;
 /**
  * Represents a list of values in the configuration file
  */
-public class ListOption extends Option {
+public final class ListOption extends Option {
 
 	/**
 	 * The list of values
