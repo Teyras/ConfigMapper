@@ -175,13 +175,13 @@ public class ConfigMapper {
 			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
 
 			if (fieldAnnotation != null) {
-				String name = !fieldAnnotation.name().equals("")
+				String name = !fieldAnnotation.name().isEmpty()
 					? fieldAnnotation.name()
 					: field.getName();
 
 				Path optionPath;
 
-				if (!fieldAnnotation.section().equals("")) {
+				if (!fieldAnnotation.section().isEmpty()) {
 					optionPath = path.add(fieldAnnotation.section()).add(name);
 					context.paths.add(path.add(fieldAnnotation.section()));
 				} else {
@@ -226,9 +226,7 @@ public class ConfigMapper {
 			ConfigSection sectionAnnotation = field.getAnnotation(ConfigSection.class);
 
 			if (sectionAnnotation != null) {
-				Class<?> sectionCls = field.getType();
-
-				String name = !sectionAnnotation.name().equals("")
+				String name = !sectionAnnotation.name().isEmpty()
 					? sectionAnnotation.name()
 					: field.getName();
 
@@ -264,9 +262,6 @@ public class ConfigMapper {
 	 * @return The new configuration structure
 	 */
 	public Root save(Object object) throws MappingException {
-		// Find out the class of the instance
-		Class<?> cls = object.getClass();
-
 		// Load metadata from the class
 		Context context = new Context();
 		extractOptions(object, context, new Path());
