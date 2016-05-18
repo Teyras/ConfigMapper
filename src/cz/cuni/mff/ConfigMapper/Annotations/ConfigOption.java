@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a field that maps to an option in the configuration file
+ * Marks a field that maps to an option in the configuration file.
+ * The initial value of the field (after the default constructor is executed) is considered the default value.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

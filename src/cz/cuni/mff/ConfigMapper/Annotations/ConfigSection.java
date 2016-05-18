@@ -6,7 +6,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a field that maps to a section in a configuration file
+ * Marks a field that maps to a section in a configuration file.
+ * The field doesn't have to be initialized - the mapper does that if necessary.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

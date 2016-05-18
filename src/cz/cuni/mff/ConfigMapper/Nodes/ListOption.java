@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents a list of values in the configuration file
+ * Represents a list of values in the configuration file.
+ * The field must be initialized by the default constructor.
  */
 public final class ListOption extends Option {
 
