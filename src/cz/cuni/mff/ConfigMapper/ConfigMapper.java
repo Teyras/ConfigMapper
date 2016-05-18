@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Maps {@link ConfigNode} structures to objects
+ * Maps {@link ConfigNode} structures to objects and back
  */
 public class ConfigMapper {
 
@@ -35,8 +35,10 @@ public class ConfigMapper {
 		context.mode = mode;
 
 		// Map available configuration option names to reflections of corresponding fields
-		extractOptions(instance, context, new Path());
+		extractMappingData(instance, context, new Path());
 
+		// If we're using the relaxed loading mode,
+		// make sure that there is a container for undeclared options
 		if (mode == LoadingMode.RELAXED && context.undeclaredOptions == null) {
 			throw new MappingException(String.format(
 				"Class %s has no field with @UndeclaredOptions",
@@ -49,6 +51,7 @@ public class ConfigMapper {
 			Path path = entry.getKey();
 			Destination destination = entry.getValue();
 
+			// Handle the case when a section is not present in the configuration
 			if (!isSectionPresent(config, path)) {
 				if (destination.isOptional) {
 					// Remove optional sections from the mapped class
@@ -143,26 +146,31 @@ public class ConfigMapper {
 	 * initialize those annotated with {@link ConfigSection} using the default constructor.
 	 * @param instance an object whose sections we need to construct
 	 * @param requiredOnly if set to true, optional sections will not be initialized
-	 * @throws MappingException
+	 * @throws MappingException When the construction of an object fails
 	 */
 	private void constructSections(Object instance, boolean requiredOnly) throws MappingException {
 		Class<?> cls = instance.getClass();
 
+		// Traverse the fields of the object
 		for (Field field : cls.getDeclaredFields()) {
 			ConfigSection sectionAnnotation = field.getAnnotation(ConfigSection.class);
 
+			// If the field is an annotated section, check its value
 			if (sectionAnnotation != null) {
 				field.setAccessible(true);
 
 				try {
 					boolean constructIfNotPresent = !(requiredOnly && sectionAnnotation.optional());
 
+					// If necessary, construct the section object
 					if (field.get(instance) == null && constructIfNotPresent) {
 						field.set(instance, constructObject(field.getType()));
 					}
 
+					// Also construct the subsections of the section
 					constructSections(field.get(instance), requiredOnly);
 				} catch (IllegalAccessException e) {
+					// If setAccessible() succeeded, this shouldn't happen
 					assert false;
 				}
 			}
@@ -170,29 +178,30 @@ public class ConfigMapper {
 	}
 
 	/**
-	 * Extract fields annotated as options from given class and store them in the mapping context.
-	 * @param instance an instance of the class to be linked in the options field of the context
-	 * @param context the mapping context where extracted options will be stored
+	 * Extract information about annotated options, sections, etc. from given object and store them in the mapping context.
+	 * @param instance an instance of the class to extract mapping data from
+	 * @param context output parameter - the mapping context where extracted options should be stored
 	 * @param path path where we currently are in the configuration tree
 	 *             (important for recursive calls on section fields)
 	 * @throws MappingException
 	 */
-	private void extractOptions(Object instance, Context context, Path path) throws MappingException {
+	private void extractMappingData(Object instance, Context context, Path path) throws MappingException {
 		Class<?> cls = instance.getClass();
 
+		// Traverse declared fields
 		for (Field field : cls.getDeclaredFields()) {
-			ConfigOption fieldAnnotation = field.getAnnotation(ConfigOption.class);
+			ConfigOption optionAnnotation = field.getAnnotation(ConfigOption.class);
 
-			if (fieldAnnotation != null) {
-				String name = !fieldAnnotation.name().isEmpty()
-					? fieldAnnotation.name()
+			if (optionAnnotation != null) {
+				String name = !optionAnnotation.name().isEmpty()
+					? optionAnnotation.name()
 					: field.getName();
 
 				Path optionPath;
 
-				if (!fieldAnnotation.section().isEmpty()) {
-					optionPath = path.add(fieldAnnotation.section()).add(name);
-					context.paths.add(path.add(fieldAnnotation.section()));
+				if (!optionAnnotation.section().isEmpty()) {
+					optionPath = path.add(optionAnnotation.section()).add(name);
+					context.paths.add(path.add(optionAnnotation.section()));
 				} else {
 					optionPath = path.add(name);
 				}
@@ -201,7 +210,7 @@ public class ConfigMapper {
 
 				context.options.put(
 					optionPath,
-					new Destination(instance, field, fieldAnnotation.optional())
+					new Destination(instance, field, optionAnnotation.optional())
 				);
 			}
 
@@ -228,6 +237,7 @@ public class ConfigMapper {
 
 					context.undeclaredOptions = (Map<String, String>) field.get(instance);
 				} catch (IllegalAccessException e) {
+					// If setAccessible() succeeded, this shouldn't happen
 					assert false;
 				}
 			}
@@ -253,9 +263,10 @@ public class ConfigMapper {
 					Object sectionInstance = field.get(instance);
 
 					if (sectionInstance != null) {
-						extractOptions(sectionInstance, context, sectionPath);
+						extractMappingData(sectionInstance, context, sectionPath);
 					}
 				} catch (IllegalAccessException e) {
+					// If setAccessible() succeeded, this shouldn't happen
 					assert false;
 				}
 			}
@@ -273,7 +284,7 @@ public class ConfigMapper {
 	public Root save(Object object) throws MappingException {
 		// Load metadata from the class
 		Context context = new Context();
-		extractOptions(object, context, new Path());
+		extractMappingData(object, context, new Path());
 
 		// Check if all non-optional sections are present
 		for (Path path : context.sections.keySet()) {
@@ -305,18 +316,21 @@ public class ConfigMapper {
 		}
 
 		// Make a data structure that will contain configuration nodes along with their paths,
-		// sorted by the length of their paths (longest path first)
+		// sorted by the length of their paths (longest path first),
+		// and then by their order of appearance in the mapped class
 		SortedSet<ConfigItem> items = new TreeSet<>((ConfigItem i1, ConfigItem i2) -> {
-			// Reverse the order by negating the comparison
+			// Items with longer paths go first
 			int diff = i2.path.size() - i1.path.size();
 
 			if (diff != 0) {
 				return diff;
 			}
 
+			// When paths have equal lengths, compare order of appearance
 			int pos1 = context.paths.indexOf(i1.path);
 			int pos2 = context.paths.indexOf(i2.path);
 
+			// Both of the paths should be present in the context
 			assert pos1 != -1;
 			assert pos2 != -1;
 
@@ -333,6 +347,7 @@ public class ConfigMapper {
 			try {
 				Object value = destination.field.get(destination.instance);
 
+				// If a required option is missing, throw an exception
 				if (value == null) {
 					if (!destination.isOptional) {
 						throw new MappingException(String.format("Missing option %s", path));
@@ -344,7 +359,8 @@ public class ConfigMapper {
 				if (value instanceof List) {
 					node = new ListOption(
 						path.lastComponent(),
-						(List<String>) value);
+						(List<String>) value
+					);
 				} else if (destination.field.getType().isEnum()) {
 					String stringValue = value.toString();
 
@@ -413,7 +429,7 @@ public class ConfigMapper {
 		}
 
 		// Until all items are at the top level (i.e. their paths only have one component)
-		while (!items.stream().allMatch((ConfigItem item) -> item.path.size() == 1)) {
+		while (!items.stream().allMatch((item) -> item.path.size() == 1)) {
 			// Pick item with the longest path
 			ConfigItem item = items.first();
 
@@ -637,6 +653,12 @@ public class ConfigMapper {
 		}
 	}
 
+	/**
+	 * If a {@link DecimalConstraint} annotation is present, check whether the option value satisfies the constraint
+	 * @param field The field to check
+	 * @param valueString A string representation of the option value
+	 * @throws MappingException When the constraint is not satisfied or when the annotation is on a wrong type of field
+	 */
 	private void checkDecimalConstraint(Field field, String valueString) throws MappingException {
 		DecimalConstraint constraint = field.getAnnotation(DecimalConstraint.class);
 
