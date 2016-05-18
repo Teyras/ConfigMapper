@@ -3,6 +3,7 @@ package cz.cuni.mff.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.Annotations.*;
 import cz.cuni.mff.ConfigMapper.Nodes.*;
 
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -56,11 +57,7 @@ public class ConfigMapper {
 				if (destination.isOptional) {
 					// Remove optional sections from the mapped class
 					// and their options from the context
-					try {
-						destination.set(null);
-					} catch (IllegalAccessException e) {
-						assert false;
-					}
+					destination.set(null);
 
 					List<Path> toRemove = context.options.keySet().stream()
 						.filter((Path optionPath) -> optionPath.prefix().equals(path))
@@ -116,7 +113,7 @@ public class ConfigMapper {
 	private <MappedObject> MappedObject constructObject(Class<MappedObject> cls) throws MappingException {
 		try {
 			Constructor<MappedObject> constructor = cls.getDeclaredConstructor();
-			constructor.setAccessible(true);
+			makeAccessible(constructor);
 			return constructor.newInstance();
 		} catch (NoSuchMethodException e) {
 			throw new MappingException(String.format(
@@ -128,16 +125,15 @@ public class ConfigMapper {
 				"Could not instantiate mapped class %s",
 				cls.getName()
 			), e);
-		} catch (IllegalAccessException e) {
-			throw new MappingException(String.format(
-				"Could not access the default constructor of mapped class %s",
-				cls.getName()
-			), e);
 		} catch (InvocationTargetException e) {
 			throw new MappingException(String.format(
 				"The constructor of class %s threw an exception",
 				cls.getName()
 			), e);
+		} catch (IllegalAccessException e) {
+			// This shouldn't happen if makeAccessible() succeeded
+			assert false;
+			throw new MappingException(""); // just to make the compiler happy
 		}
 	}
 
@@ -157,9 +153,8 @@ public class ConfigMapper {
 
 			// If the field is an annotated section, check its value
 			if (sectionAnnotation != null) {
-				field.setAccessible(true);
-
 				try {
+					makeAccessible(field);
 					boolean constructIfNotPresent = !(requiredOnly && sectionAnnotation.optional());
 
 					// If necessary, construct the section object
@@ -170,10 +165,21 @@ public class ConfigMapper {
 					// Also construct the subsections of the section
 					constructSections(field.get(instance), requiredOnly);
 				} catch (IllegalAccessException e) {
-					// If setAccessible() succeeded, this shouldn't happen
+					// If makeAccessible() succeeded, this shouldn't happen
 					assert false;
 				}
 			}
+		}
+	}
+
+	/**
+	 * Make the value of an object accessible via reflection API.
+	 * If the object is already accessible, there will be no reflection call.
+	 * @param object object to be made accessible
+	 */
+	private void makeAccessible(AccessibleObject object) {
+		if (!object.isAccessible()) {
+			object.setAccessible(true);
 		}
 	}
 
@@ -259,16 +265,15 @@ public class ConfigMapper {
 			new Destination(instance, field, sectionAnnotation.optional())
 		);
 
-		field.setAccessible(true);
-
 		try {
+			makeAccessible(field);
 			Object sectionInstance = field.get(instance);
 
 			if (sectionInstance != null) {
 				extractMappingData(sectionInstance, context, sectionPath);
 			}
 		} catch (IllegalAccessException e) {
-			// If setAccessible() succeeded, this shouldn't happen
+			// If makeAccessible() succeeded, this shouldn't happen
 			assert false;
 		}
 	}
@@ -277,7 +282,7 @@ public class ConfigMapper {
 	 * If given field has the {@link UndeclaredOptions} annotation, save information about the undeclared option container into the context
 	 * @param field the field to check
 	 * @param instance instance to check
-	 * @param context the context where the resulting infomration should be stored
+	 * @param context the context where the resulting information should be stored
 	 * @throws MappingException
 	 */
 	private void processUndeclaredOptionsAnnotation(Field field, Object instance, Context context) throws MappingException {
@@ -296,9 +301,9 @@ public class ConfigMapper {
 			));
 		}
 
-		field.setAccessible(true);
-
 		try {
+			makeAccessible(field);
+
 			if (!(field.get(instance) instanceof Map<?, ?>)) {
 				throw new MappingException(String.format(
 					"Field %s of class %s is not of type Map<String, String>",
@@ -309,7 +314,7 @@ public class ConfigMapper {
 
 			context.undeclaredOptions = (Map<String, String>) field.get(instance);
 		} catch (IllegalAccessException e) {
-			// If setAccessible() succeeded, this shouldn't happen
+			// If makeAccessible() succeeded, this shouldn't happen
 			assert false;
 		}
 	}
@@ -330,13 +335,7 @@ public class ConfigMapper {
 		// Check if all non-optional sections are present
 		for (Path path : context.sections.keySet()) {
 			Destination destination = context.sections.get(path);
-			Object value = null;
-
-			try {
-				value = destination.field.get(destination.instance);
-			} catch (IllegalAccessException e) {
-				assert false;
-			}
+			Object value = destination.get();
 
 			if (!destination.isOptional && value == null) {
 				throw new MappingException(String.format("Section %s is null", path));
@@ -381,31 +380,18 @@ public class ConfigMapper {
 		// Populate the item set with option nodes
 		for (Path path : context.options.keySet()) {
 			Destination destination = context.options.get(path);
+			Object value = destination.get();
 
-			Option node;
-			destination.field.setAccessible(true);
-
-			try {
-				Object value = destination.field.get(destination.instance);
-
-				// If a required option is missing, throw an exception
-				if (value == null) {
-					if (!destination.isOptional) {
-						throw new MappingException(String.format("Missing option %s", path));
-					}
-
-					continue;
+			// If a required option is missing, throw an exception
+			if (value == null) {
+				if (!destination.isOptional) {
+					throw new MappingException(String.format("Missing option %s", path));
 				}
 
-				node = storeOptionValue(path.lastComponent(), destination.field, value);
-			} catch (IllegalAccessException e) {
-				throw new MappingException(String.format(
-					"Field %s of class %s is not accessible",
-					destination.field.getName(),
-					destination.field.getDeclaringClass().getName()
-				));
+				continue;
 			}
 
+			Option node = storeOptionValue(path.lastComponent(), destination.field, value);
 			items.add(new ConfigItem(path, node));
 		}
 
@@ -568,9 +554,6 @@ public class ConfigMapper {
 
 		Field field = destination.field;
 
-		boolean fieldAccessible = field.isAccessible();
-		field.setAccessible(true);
-
 		try {
 			loadOptionValue(option, destination);
 		} catch (IllegalArgumentException e) {
@@ -579,11 +562,7 @@ public class ConfigMapper {
 				field.getName(),
 				field.getType().getName()
 			));
-		} catch (IllegalAccessException e) {
-			assert false;
 		}
-
-		field.setAccessible(fieldAccessible);
 	}
 
 	/**
@@ -593,7 +572,7 @@ public class ConfigMapper {
 	 * @throws IllegalAccessException
 	 * @throws MappingException
 	 */
-	private void loadOptionValue(Option option, Destination destination) throws IllegalAccessException, MappingException {
+	private void loadOptionValue(Option option, Destination destination) throws MappingException {
 		if (option instanceof ListOption) {
 			destination.set(new ArrayList<>(((ListOption) option).getValue()));
 			return;
@@ -951,16 +930,39 @@ class Destination {
 		this.instance = instance;
 		this.field = field;
 		this.isOptional = isOptional;
+
+		if (!field.isAccessible()) {
+			field.setAccessible(true);
+		}
 	}
 
 	/**
 	 * Set the field's value
 	 * @param value value to set
-	 * @throws IllegalAccessException
 	 */
-	public void set(Object value) throws IllegalAccessException {
-		field.set(instance, value);
-		isSet = true;
+	public void set(Object value) {
+		try {
+			field.set(instance, value);
+			isSet = true;
+		} catch (IllegalAccessException e) {
+			// This shouldn't happen if setAccessible() succeeded
+			assert false;
+		}
+	}
+
+	/**
+	 * Get the field's value
+	 * @return the field'S value
+	 */
+	public Object get() {
+		try {
+			return field.get(instance);
+		} catch (IllegalAccessException e) {
+			// This shouldn't happen if setAccessible() succeeded
+			assert false;
+		}
+
+		return null;
 	}
 }
 
