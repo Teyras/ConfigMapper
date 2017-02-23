@@ -1,10 +1,9 @@
+package cz.cuni.mff.ConfigMapper;
+
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigSection;
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
-import cz.cuni.mff.ConfigMapper.ConfigFacade;
 import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
-import cz.cuni.mff.ConfigMapper.LoadingMode;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;

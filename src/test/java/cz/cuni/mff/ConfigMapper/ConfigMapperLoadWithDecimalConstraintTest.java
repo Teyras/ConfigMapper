@@ -1,3 +1,5 @@
+package cz.cuni.mff.ConfigMapper;
+
 import cz.cuni.mff.ConfigMapper.Annotations.ConfigOption;
 import cz.cuni.mff.ConfigMapper.Annotations.DecimalConstraint;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;

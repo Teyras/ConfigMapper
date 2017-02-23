@@ -1,3 +1,5 @@
+package cz.cuni.mff.ConfigMapper;
+
 import cz.cuni.mff.ConfigMapper.Adapters.IniAdapter;
 import cz.cuni.mff.ConfigMapper.Nodes.ListOption;
 import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;

@@ -1,7 +1,6 @@
+package cz.cuni.mff.ConfigMapper;
+
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
-import cz.cuni.mff.ConfigMapper.ConfigMapper;
-import cz.cuni.mff.ConfigMapper.LoadingMode;
-import cz.cuni.mff.ConfigMapper.MappingException;
 import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
 import cz.cuni.mff.ConfigMapper.Nodes.ScalarOption;
 import cz.cuni.mff.ConfigMapper.Nodes.Section;

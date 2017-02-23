@@ -1,4 +1,4 @@
-
+package cz.cuni.mff.ConfigMapper;
 
 import static org.junit.Assert.*;
 

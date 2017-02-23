@@ -1,3 +1,5 @@
+package cz.cuni.mff.ConfigMapper;
+
 import cz.cuni.mff.ConfigMapper.Annotations.UndeclaredOptions;
 import cz.cuni.mff.ConfigMapper.ConfigMapper;
 import cz.cuni.mff.ConfigMapper.Nodes.ConfigRoot;
